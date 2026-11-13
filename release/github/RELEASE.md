@@ -4,12 +4,13 @@ Windows 10/11 64 位测试版。[下载与版本列表](https://github.com/Zecha
 
 - 首页与歌单缓存按音源、账号隔离；重开先显示缓存，过期后后台刷新。
 - 滚动时立即复用已有封面，切歌、隐藏和关闭时释放旧图片资源。
+- 网易云超大推荐封面改为请求 512×512 缩略图，修复原图超过安全像素上限而无法显示的问题。
 - 提高按钮文字对比度；ESC 主菜单提供单个原生“音乐播放器”入口；在线打开音乐设置，离线进入连接页并重读连接。
 - 打开模组目录会尝试显示已有窗口，并反馈是否需要按 Alt+Tab。
 - 新增 GitHub 版本检查和固定工坊入口，可关闭自动检查，不会自动安装。
 - 原生音频下载失败后，再次点击播放可重新尝试。
 
-本地后端、原生音频、Lua 离线契约与打包检查已通过；游戏内已检查旧入口、连接、主题切换、缓存和滚动等部分流程。新的 ESC 主菜单入口和网易云推荐封面修复已通过离线或后台验证，游戏内仍待验收；真实工坊订阅更新等也待验收。自动化检查不代表完整游戏验收。
+本地后端、原生音频、Lua 离线契约与打包检查已通过；游戏内已确认新 ESC 入口可打开音乐设置并返回，原系统设置页不再被音乐按钮占用，之前缺失的网易云推荐封面已显示。连接、主题切换、缓存和滚动等部分流程也已检查；真实工坊订阅更新、新电脑初装等仍待验收。自动化检查不代表完整游戏验收。
 
 ### 下载与更新
 
@@ -26,4 +27,4 @@ Steam 负责更新游戏 Mod；Windows 配套程序需要重新启动新版。�
 
 This Windows beta improves account-separated home/playlist caching, scrolling artwork, resource cleanup, button readability and a native-style ESC main-menu entry. It adds GitHub release checks and clearer folder-opening feedback, and allows explicit retry after a failed native audio download. Update checks never install software automatically.
 
-Use **Windows-Companion.zip** with the subscribed client Mod. **Release.zip** contains the complete Workshop upload bundle, companion, source and notices. Playback remains subject to each service's account permissions and API availability. Some in-game flows were checked; the new ESC entry and recommended artwork fix still await in-game validation. Real Workshop update behavior and other scenarios still require validation.
+Use **Windows-Companion.zip** with the subscribed client Mod. **Release.zip** contains the complete Workshop upload bundle, companion, source and notices. Playback remains subject to each service's account permissions and API availability. The new ESC entry, removal of the old options-page buttons, repaired recommended artwork and several connection, theme and caching flows were verified in-game. Real Workshop updates, first-time setup on another PC and other scenarios still require validation.

@@ -1,12 +1,12 @@
 0.6.0-beta.3 — 测试候选
 
 首页与歌单按来源及账号缓存五分钟，重开时先显示已有内容并后台刷新，失败保留旧内容；封面复用并回收资源。按钮对比度增强，ESC 主菜单提供单个原生“音乐播放器”入口：在线打开音乐设置，离线进入连接页并重读连接。打开模组目录会复用并尝试聚焦已有窗口，必要时可用 Alt+Tab。
-新增 GitHub Releases 版本检查（工坊订阅由 Steam 更新）：启动及每六小时自动检查可关闭，也可手动检查，不自动安装。原生下载失败后可显式播放重试。游戏内已检查旧入口、连接、主题、缓存和滚动等部分流程；新的 ESC 主菜单入口与推荐封面修复仍待游戏内验收。
+新增 GitHub Releases 版本检查（工坊订阅由 Steam 更新）：启动及每六小时自动检查可关闭，也可手动检查，不自动安装。原生下载失败后可显式播放重试。游戏内已确认新 ESC 入口及返回、系统设置页移除旧按钮、网易云推荐封面修复，并检查连接、主题、缓存和滚动等部分流程。
 
 0.6.0-beta.3 — test candidate
 
 Home and playlists retain account- and provider-isolated caches for five minutes, displaying cached content while refreshing; failed refreshes retain the previous content. Artwork is reused and released. Higher-contrast buttons and a native-style ESC main-menu entry opens music settings online and the connection page offline. Opening the mod folder reuses and attempts to focus an existing window; use Alt+Tab if it is obscured.
-Version checks use GitHub Releases; Steam updates Workshop subscriptions: startup and six-hour automatic checks can be disabled, and manual checks never install updates. Explicit playback can retry after a native download failure. Some in-game entry, connection, theme, cache and scrolling flows were checked; the new ESC entry and recommended artwork fix await in-game validation.
+Version checks use GitHub Releases; Steam updates Workshop subscriptions: startup and six-hour automatic checks can be disabled, and manual checks never install updates. Explicit playback can retry after a native download failure. In-game checks confirmed the new ESC entry and return, removal of the old options-page buttons, repaired NetEase artwork, and several connection, theme, cache and scrolling flows.
 
 0.6.0-beta.2 — 测试候选
 

@@ -2,7 +2,7 @@
 
 在《饥荒联机版》中浏览网易云音乐和 QQ 音乐歌单、搜索歌曲并控制播放，配有封面、悬浮歌词、歌曲卡片、动态岛和地区空间音效。客户端模组无需服务器或朋友安装，支持 Windows 10/11 64 位。
 
-当前源码为 **0.6.0-beta.3 测试候选**，部分界面与连接流程已在游戏中检查；新的 ESC 主菜单入口与封面修复仍待游戏内验收。下载请查看 [GitHub Releases](https://github.com/Zechariah0121/dst-music/releases)。工坊条目：[DangoMusic 沉浸音乐播放](https://steamcommunity.com/sharedfiles/filedetails/?id=3836261433)。
+当前源码为 **0.6.0-beta.3 测试版**，新的 ESC 主菜单入口、推荐封面修复及部分界面与连接流程已在游戏中检查。下载请查看 [GitHub Releases](https://github.com/Zechariah0121/dst-music/releases)。工坊条目：[DangoMusic 沉浸音乐播放](https://steamcommunity.com/sharedfiles/filedetails/?id=3836261433)。
 
 ## 开始使用
 
@@ -24,6 +24,6 @@
 
 需要 Windows 和 Python 3.10+：运行 `python tools/prepare-runtime.py` 准备固定运行库，再运行 `runtime/python/python.exe tools/build-workshop.py`。产物位于新的 `dist/*-workshop-*` 目录。构建器不上传内容。协议见 [PROTOCOL.md](PROTOCOL.md)，测试范围见 [VALIDATION.md](release/workshop/VALIDATION.md)。
 
-维护者发布时，先更新版本标记、Mod 信息、构建器版本和 `release/github/RELEASE.md`，完成本机游戏验收后再推送同名 `v版本号` 标签。GitHub Actions 会检查版本一致性、运行后端与打包测试，再构建 Windows 配套包、完整包及源码并创建 Release；beta 标签发布为预发布。手动运行工作流只构建供下载的 Actions 产物，不创建 Release，也不上传 Steam。main 分支构建 CI 已成功，最新一次见 [Actions 记录](https://github.com/Zechariah0121/dst-music/actions/runs/43488379270)；标签触发的发布流程尚待首次验证。
+维护者发布时，先更新版本标记、Mod 信息、构建器版本和 `release/github/RELEASE.md`，完成本机游戏验收后再推送同名 `v版本号` 标签。GitHub Actions 会检查版本一致性、运行后端与打包测试，再构建 Windows 配套包、完整包及源码并创建 Release；beta 标签发布为预发布。手动运行工作流只构建供下载的 Actions 产物，不创建 Release，也不上传 Steam。每次构建和发布的实际结果见 [Actions 记录](https://github.com/Zechariah0121/dst-music/actions/workflows/release.yml)。
 
 本项目由 Zcc 制作，非网易云、QQ 音乐、Klei 或 DangoMusic 官方产品。包含基于 [Sorihiko / DangoMusic](https://github.com/Sorihiko/DangoMusic) 的 GPLv3 衍生音频与 QQ 互操作实现；对应源码、GPL 正文和其他组件许可随包提供，详见 [许可说明](release/workshop/LICENSE-DECISION.md) 与 [组件来源](helper/native-deps/SOURCES.md)。
