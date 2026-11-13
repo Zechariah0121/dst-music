@@ -1,0 +1,98 @@
+name: Build and publish Windows release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Validate the release version
+        id: version
+        shell: python
+        run: |
+          import json, os, re
+          from pathlib import Path
+          version = json.loads(Path('mod/music_workshop_identity.json').read_text('utf-8'))['version']
+          if not re.fullmatch(r'\d+\.\d+\.\d+(?:-beta\.\d+)?', version):
+              raise SystemExit('Invalid release version')
+          if os.environ['GITHUB_REF_TYPE'] == 'tag' and os.environ['GITHUB_REF_NAME'] != 'v' + version:
+              raise SystemExit('Tag must match the version shipped in the Mod and Companion')
+          if version not in Path('release/github/RELEASE.md').read_text('utf-8').splitlines()[0]:
+              raise SystemExit('Update release/github/RELEASE.md for this version before publishing')
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              output.write('version=' + version + '\n')
+      - name: Prepare verified official runtimes
+        run: python tools/prepare-runtime.py
+      - name: Backend and update checks
+        run: >-
+          runtime/node/node.exe --test tests/backend.test.mjs tests/updates.test.mjs
+          tests/local-actions.test.mjs tests/game-request-integration.test.mjs
+          tests/music-sources.test.mjs tests/qqmusic.test.mjs tests/qq-login.test.mjs
+          tests/qq-lyrics.test.mjs
+      - name: Packaging and privacy checks
+        run: |
+          python -m unittest discover -s tests -p test_workshop_build.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s tests -p test_complete_release.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python -m unittest discover -s tests -p test_private_patterns.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Build all release packages
+        env:
+          RELEASE_VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          runtime/python/python.exe tools/build-workshop.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $bundle = Get-ChildItem -LiteralPath dist -Directory | Sort-Object Name -Descending | Select-Object -First 1
+          $assets = New-Item -ItemType Directory -Path '.state/github-release-assets'
+          $complete = Join-Path $assets.FullName ("DangoMusic-" + $env:RELEASE_VERSION + "-Release.zip")
+          runtime/python/python.exe tools/build-complete-release.py $bundle.FullName --output $complete
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          Copy-Item -LiteralPath (Join-Path $bundle.FullName ("DST-Music-" + $env:RELEASE_VERSION + "-Windows-Companion.zip")) -Destination $assets
+          Copy-Item -LiteralPath (Join-Path $bundle.FullName ("DST-Music-" + $env:RELEASE_VERSION + "-Source.zip")) -Destination $assets
+          Get-ChildItem -LiteralPath $assets.FullName -Filter '*.zip' | Sort-Object Name | ForEach-Object {
+            (Get-FileHash -LiteralPath $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant() + '  ' + $_.Name
+          } | Set-Content -LiteralPath (Join-Path $assets.FullName 'SHA256SUMS.txt') -Encoding ascii
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dst-music-${{ steps.version.outputs.version }}
+          path: .state/github-release-assets/*
+          if-no-files-found: error
+          include-hidden-files: true
+
+  publish:
+    if: github.ref_type == 'tag' && github.repository == 'Zechariah0121/dst-music'
+    needs: build
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: dst-music-${{ needs.build.outputs.version }}
+          path: release-assets
+      - name: Publish the verified tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+          RELEASE_VERSION: ${{ needs.build.outputs.version }}
+        run: |
+          $files = @(Get-ChildItem -LiteralPath release-assets -File | ForEach-Object { $_.FullName })
+          $options = @('release','create',$env:RELEASE_TAG,'--verify-tag','--title',("DangoMusic " + $env:RELEASE_VERSION),'--notes-file','release/github/RELEASE.md')
+          if ($env:RELEASE_VERSION.Contains('-beta.')) { $options += '--prerelease' }
+          & gh @options @files
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }

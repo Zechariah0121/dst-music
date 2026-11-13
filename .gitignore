@@ -1,0 +1,7 @@
+.state/
+mod/scripts/dangomusic_connection.lua
+*.log
+artifacts/
+__pycache__/
+runtime/
+dist/

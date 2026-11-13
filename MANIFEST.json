@@ -1,0 +1,577 @@
+{
+  "files": {
+    ".github/workflows/release.yml": {
+      "bytes": 4811,
+      "sha256": "d2cfb86117e13cf5c14bb2d378c54b5bf49d7584a78bd4801d7bf234f01b0cfb"
+    },
+    ".gitignore": {
+      "bytes": 91,
+      "sha256": "a3d7f8e57719efbf9ea257118cf6769f12fe2c81eb56d1345da942b5d4fd597c"
+    },
+    "Check-Environment.ps1": {
+      "bytes": 790,
+      "sha256": "98aebf340e960a828f4ac98758da7c87be6004a1ebc7bb941d8d2534020d3838"
+    },
+    "Connect-Workshop.ps1": {
+      "bytes": 2124,
+      "sha256": "1cca901d851d9b36fc18e07adb106375493e7e566f096b5e723d54478da1e470"
+    },
+    "Install-Mod.ps1": {
+      "bytes": 4834,
+      "sha256": "169bb7c058ed218c60fcb4b04e7d24e1cb0fcd4d52e034312bef350559b45613"
+    },
+    "LICENSE-DECISION.md": {
+      "bytes": 1886,
+      "sha256": "f61877e4019b26ac6d0cd10b44e2b61842eac33227652efc1b51ac5e9b7968b6"
+    },
+    "PROTOCOL.md": {
+      "bytes": 15650,
+      "sha256": "1d1b8d65045144dc2608b7d77e292bea187b156659a88c09df30ae588da8889c"
+    },
+    "README.md": {
+      "bytes": 3750,
+      "sha256": "9f657e873b1f844e79d0d27b5a68f48c99aa2a2c75bc65aa37bceafe4af25ac2"
+    },
+    "Runtime-Paths.ps1": {
+      "bytes": 13413,
+      "sha256": "4d74ef3e76f4a1982a4d250234eeed8faf50d6e5feac1511de0a0121aac45574"
+    },
+    "Start-Player.ps1": {
+      "bytes": 6748,
+      "sha256": "9f1b89348bb6c336e28f79f8a968a3ad66578784a2bd0c57544189e67e55cd5a"
+    },
+    "Stop-Player.ps1": {
+      "bytes": 1527,
+      "sha256": "cee2bc9dcbc575169fbad52303202970f4242080fc61474c133cfa025c6aa891"
+    },
+    "THIRD-PARTY-NOTICES.md": {
+      "bytes": 2406,
+      "sha256": "7441082927b68edea08a14c1f491b726deef83ff081c4c0eeefcbfc38911c819"
+    },
+    "VERSION": {
+      "bytes": 41,
+      "sha256": "5c5b316c75f41da029a155083906cbc6a3daab09c42d2fd2f2f15c1536ccbecb"
+    },
+    "helper/EnvironmentDSP.cs": {
+      "bytes": 11863,
+      "sha256": "d416133bb0a871b16f609b8bc51d42d4e42ac0d6ecb732c225a1cc8c9f415d58"
+    },
+    "helper/GameProcessMonitor.cs": {
+      "bytes": 1117,
+      "sha256": "15a56d08c3e484d0d0bf201824a58f48b517b2406f6b66183b9b85b0a1e51aa3"
+    },
+    "helper/NativeDSP.cs": {
+      "bytes": 25131,
+      "sha256": "8e519258c528f0ba5e7d91e28c8510589efc6d34e1105a6c00861dfb55350430"
+    },
+    "helper/NativePlayer.cs": {
+      "bytes": 13671,
+      "sha256": "94202d033c40450fba2d50e4a81e0799572304cfc297bcf810efe376c545dfa8"
+    },
+    "helper/NativePlayer.ps1": {
+      "bytes": 1825,
+      "sha256": "7c690d392ca39f0b82d171ea28973a6f3c661650f802c14bdaf39bf7803d4bab"
+    },
+    "helper/Open-ModFolder.ps1": {
+      "bytes": 2366,
+      "sha256": "952c4dae2b5587f4a84f9434745fdbc973a8a11566ecfefa3a17268483982771"
+    },
+    "helper/asset-image.py": {
+      "bytes": 10890,
+      "sha256": "02b9f1fc1c6bff0979652b30963c939a3fab04c3a0ca7a0f05abb39af77276e4"
+    },
+    "helper/game-assets.mjs": {
+      "bytes": 9298,
+      "sha256": "28d434a1011af2ef849035472e2e257c8df578ddd853fbabfbea495cbe60d158"
+    },
+    "helper/game-requests.mjs": {
+      "bytes": 4165,
+      "sha256": "bd5c55b8989f35cb1058ffccf44682c755585c7865ed11570c5bcd12d29d95bb"
+    },
+    "helper/ktex.py": {
+      "bytes": 3775,
+      "sha256": "ceca238aefcfe054d851cd9c18cdb2d4026079dbf7cc58b0f5ba4c49d3f2068b"
+    },
+    "helper/local-actions.mjs": {
+      "bytes": 2091,
+      "sha256": "40d084e5db7ea89502c7ac2ee6bf95e73bee2ec96458a52cb4a6928f90ed9faa"
+    },
+    "helper/lyric-glyphs.mjs": {
+      "bytes": 7280,
+      "sha256": "de5ce01146a375b143fc12767993c8e2a14b9d3f386d074cafaa7a7f7d203c8a"
+    },
+    "helper/lyric-glyphs.py": {
+      "bytes": 12618,
+      "sha256": "81c60e6457301d0f35e2a6d9603944a91a6a2df60c65caf7650dada8d2fb2a20"
+    },
+    "helper/lyrics.mjs": {
+      "bytes": 3422,
+      "sha256": "e2c388f38158dabdfd05647172310c5f28cce8389b36fa9af425a9e55aa7b450"
+    },
+    "helper/media-dns.mjs": {
+      "bytes": 3708,
+      "sha256": "bdcd439175b6e4a1ca2d1fc61eb306b3531ffdc777ddb71753a307a39e13fcb7"
+    },
+    "helper/music-source.mjs": {
+      "bytes": 782,
+      "sha256": "531a2f3f306d6f9cc4a95ea825fe03223f567942f910c97901c326d53664cf6b"
+    },
+    "helper/native-deps/DangoMusic.LICENSE.txt": {
+      "bytes": 35149,
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    "helper/native-deps/EnvironmentAudio.reference.kt": {
+      "bytes": 7386,
+      "sha256": "07e9af18406af16335464a27413319d0a5ddc5a65742d540b3584aaa4c7dab49"
+    },
+    "helper/native-deps/MusicPlayer.reference.kt": {
+      "bytes": 23057,
+      "sha256": "e9f3a3267d62a34d68b9a7a84cb3f0b7bcea56d9eddeb8ebc6ccfde0300bfebe"
+    },
+    "helper/native-deps/NAudio.Core.dll": {
+      "bytes": 187904,
+      "sha256": "fcf493fc47a2f478a65303886b975fbdbf714cbb1f2d79f7fce97e4bb16b01a8"
+    },
+    "helper/native-deps/NAudio.LICENSE.txt": {
+      "bytes": 1059,
+      "sha256": "303e01786b271eb464b3f43d18a375f2f17d37bc708a37c2fdf45b289fb5bfaa"
+    },
+    "helper/native-deps/NAudio.Wasapi.dll": {
+      "bytes": 179200,
+      "sha256": "618ef0e49d64e7a66dfe64bbf6ae81705b9d9683d8a9f321e5c3024d666bdf82"
+    },
+    "helper/native-deps/NAudio.WinMM.dll": {
+      "bytes": 57344,
+      "sha256": "749a01ebbb5edd8b1a03c5263b04de6acadecf52e4cc84d7412bc6e93f180958"
+    },
+    "helper/native-deps/SOURCES.md": {
+      "bytes": 7169,
+      "sha256": "82b4ff699cc4483b859d9b56b429fd0103f670b471fc14bd6b1304028c3fe681"
+    },
+    "helper/netease.mjs": {
+      "bytes": 10638,
+      "sha256": "1c41093ba5e52134b8971db3302b4325af715911e2beea56b3640830ab40c635"
+    },
+    "helper/public/app.js": {
+      "bytes": 14953,
+      "sha256": "2dcfa9236a981c4444c98f024f1021ba556d2ed1809c1f50eabfcdf9c013b7d4"
+    },
+    "helper/public/index.html": {
+      "bytes": 5046,
+      "sha256": "1fbb5578b590a7eb8eae9da33a9b187eefbc28300b7fd694609bd5c09a311c6e"
+    },
+    "helper/public/style.css": {
+      "bytes": 10441,
+      "sha256": "c96adf18e3cd61725e6b928b9632b3c3810c584a5841c98c656fa4ca21e66b5f"
+    },
+    "helper/public/vendor/qrcode-LICENSE.txt": {
+      "bytes": 1145,
+      "sha256": "e83c283d5f08ef0493d42a57282c43ad40b9082765226c32d8958436d6a8b3d4"
+    },
+    "helper/public/vendor/qrcode.js": {
+      "bytes": 56694,
+      "sha256": "18ae399f81182bc9de916e9c77b195df20cc58d6f2d55a62b085a299f1bf1780"
+    },
+    "helper/qq-login.mjs": {
+      "bytes": 21285,
+      "sha256": "4cb482a8b7b71e63ff859265505c09e7351db61877e9f4cc20d121d648effbb5"
+    },
+    "helper/qq-lyrics.mjs": {
+      "bytes": 10593,
+      "sha256": "1d7e9e5ff9b7db9df4c62b1e09c677865ffb8b5a986b0ce490f5ec8f2dcb2423"
+    },
+    "helper/qqmusic.mjs": {
+      "bytes": 19292,
+      "sha256": "4a76d06410ea50b664caa5e9a69785b55d33c9df722a6448f107d3b637e3684d"
+    },
+    "helper/runtime-assets.mjs": {
+      "bytes": 3236,
+      "sha256": "c3285d1d2456d281320f3ce73fbcbfe8376fa403cac44cbdfef0431e8702cfeb"
+    },
+    "helper/server.mjs": {
+      "bytes": 44364,
+      "sha256": "f65f94b78b63e648abf478ca134cf3d313d0d7be797f7032dd87f048e289b6bd"
+    },
+    "helper/settings.mjs": {
+      "bytes": 5736,
+      "sha256": "c60d3a157c8b379884a6ea997842519e74e8c17b36c406f1d6d58843598e54d4"
+    },
+    "helper/updates.mjs": {
+      "bytes": 9477,
+      "sha256": "e5604f5e86387f42f05980db9c60747afdfcb6d305a0f6532f7a974010118286"
+    },
+    "mod/images/music/ui.png": {
+      "bytes": 218361,
+      "sha256": "5a785fbaeb40a3c2e047e32b2961f9810854734f8fc8a6a7621b0cc62bb82571"
+    },
+    "mod/images/music/ui.tex": {
+      "bytes": 16777234,
+      "sha256": "aa951054076c042766e544c771f3510d64bdae2d120c450127185795cfdeea2b"
+    },
+    "mod/images/music/ui.xml": {
+      "bytes": 3353,
+      "sha256": "040a8c0ed85ea9d1deeac7468ef318eb66cb10ca2b99da25113491416b879e8c"
+    },
+    "mod/modicon.tex": {
+      "bytes": 65554,
+      "sha256": "8c0bf5547898c3c1c502f7ca1e0b88f65b868009ea3a5b3b60288fb953d8ea61"
+    },
+    "mod/modicon.xml": {
+      "bytes": 128,
+      "sha256": "94d13cb7b13f8a21e15c5d0a5e9664786d5de1b017c6193f3640b3aab620213d"
+    },
+    "mod/modinfo.lua": {
+      "bytes": 1123,
+      "sha256": "ce18488a6fe9c53c41db72eb1fe45eb3ef1505962cf2ea9cbe5714c0edd92092"
+    },
+    "mod/modmain.lua": {
+      "bytes": 7867,
+      "sha256": "8086c9c6f272be3eb8ea933ef4fe74f4f06556ed88e53cead95f8728b2e4043c"
+    },
+    "mod/music_workshop_identity.json": {
+      "bytes": 102,
+      "sha256": "39b4c863b7e4788c0edd2ac93ea50d003ebd6cccf80d58bf4ce548341d0ed8e1"
+    },
+    "mod/scripts/dangomusic_assets.lua": {
+      "bytes": 3753,
+      "sha256": "dffff94a77294abfcbf8bf3218701291c68c6f79b1799631e6834999932163a0"
+    },
+    "mod/scripts/dangomusic_bridge.lua": {
+      "bytes": 6576,
+      "sha256": "edc21f63044e162cb6951a6e7de42619abfc8940efc8becac300f63a43913033"
+    },
+    "mod/scripts/dangomusic_controller.lua": {
+      "bytes": 18752,
+      "sha256": "80d1a7b5de860af90c2b307e81a3cc84cab8785eff0abbb0d2a312e14c815672"
+    },
+    "mod/scripts/dangomusic_environment.lua": {
+      "bytes": 3243,
+      "sha256": "8f3e79e59c5a98c1c93926b2d5f49e9707e5d2871c432f9d241298beee839e81"
+    },
+    "mod/scripts/screens/dangomusicscreen.lua": {
+      "bytes": 70455,
+      "sha256": "94e5e18f5ac0481e9251b4044d3aba21e451a383048aa34fdc11f9a1fd6d84ca"
+    },
+    "mod/scripts/widgets/music_hudutil.lua": {
+      "bytes": 7082,
+      "sha256": "9d8a4eb254a7e9dc1b24a465b692e160798c184ebb4f7c7961b96a7b8b703073"
+    },
+    "mod/scripts/widgets/music_island.lua": {
+      "bytes": 3017,
+      "sha256": "36c7b454ee4e1c64f6b8ea2a9c5e2b16ea0cb8f24c0aee5e2f428baaf18c39ce"
+    },
+    "mod/scripts/widgets/music_lyriclogic.lua": {
+      "bytes": 7392,
+      "sha256": "62b10dd15ac05fafeb1953e555c9758896373114faaac2add188f11a97f2cd47"
+    },
+    "mod/scripts/widgets/music_lyrics.lua": {
+      "bytes": 22741,
+      "sha256": "01b43ed4aafd85e5a6511b0ca5b17e1856d0ca8100e973d365f27a674a6f927b"
+    },
+    "mod/scripts/widgets/music_songcard.lua": {
+      "bytes": 3448,
+      "sha256": "7744534b02e27bb8114987067af840ece32d9e4d9a0974dbb1075dffb985d345"
+    },
+    "mod/scripts/widgets/music_ui_common.lua": {
+      "bytes": 23607,
+      "sha256": "f6c7c0c198f06f681a6db354c0dd067e550d1bff1612192341f006193a28789c"
+    },
+    "mod/tests/test_bridge.py": {
+      "bytes": 9210,
+      "sha256": "bffcc1f6623a7886063c551a691715d24a244a59a9b8a8163fdde532c0711515"
+    },
+    "mod/tests/test_controller.py": {
+      "bytes": 18915,
+      "sha256": "91576ae1434f04916756c8735a3dbbcb27d4cdc6230b426a0b9979980d84be18"
+    },
+    "mod/tests/test_environment.py": {
+      "bytes": 6584,
+      "sha256": "0500f60cd26ea51878aaf76d515610f329584cba860669ece9cbbe432bddb3dd"
+    },
+    "mod/tests/test_lyrics_hud.py": {
+      "bytes": 33905,
+      "sha256": "42020e6ed284ab9c62b01f6805ed8f61c2bd3045f1213b8d1a71b46c295b61ba"
+    },
+    "mod/tests/test_mod_entries.py": {
+      "bytes": 6049,
+      "sha256": "aae2f61b95187ac9a9335296ebb1c3abaf44d5f1322b0a466f751ece3614b6ac"
+    },
+    "mod/tests/test_music_screen.py": {
+      "bytes": 44417,
+      "sha256": "1657c53c822228bedb7cd2ecef7b37562382ea56d2a0321ef2ee1f1512c376ac"
+    },
+    "mod/tests/test_music_ui.py": {
+      "bytes": 9392,
+      "sha256": "53d213018a5958cd7d4abfde4269dcf91d7392e0de341a8edfe70741f04e007c"
+    },
+    "release/CHANGELOG.md": {
+      "bytes": 1353,
+      "sha256": "269297e1cae4e03d61f19a843ea4aaef5eaa90f35d73ced06b11bd6300b3d0a7"
+    },
+    "release/README.zh-CN.md": {
+      "bytes": 4597,
+      "sha256": "34533e97563400768e0e6c36a4c51ec4e63a6c0a87f4f4bb542933b664bc7af5"
+    },
+    "release/RELEASE-STATUS.md": {
+      "bytes": 935,
+      "sha256": "5e7f50a5745467cacbaeeb2c5c315e233e425bedad48d3bcb5add64dc11c54b3"
+    },
+    "release/THIRD-PARTY-NOTICES.md": {
+      "bytes": 2406,
+      "sha256": "7441082927b68edea08a14c1f491b726deef83ff081c4c0eeefcbfc38911c819"
+    },
+    "release/VALIDATION.md": {
+      "bytes": 2488,
+      "sha256": "3e9d8451b2ef3b4ee9ade0b358ea70943355a2ae899592dc94b1afa8af6a699f"
+    },
+    "release/github/RELEASE.md": {
+      "bytes": 2462,
+      "sha256": "92442dfd2d16a7aa7a08abbb5eafc1aa6adf6014094f8df59249152a07ca702b"
+    },
+    "release/workshop/ARTWORK.json": {
+      "bytes": 818,
+      "sha256": "af91d058a77da1187ed9ae6f0806421557d1cb1f0972ef22c7ddd21b8a372f2f"
+    },
+    "release/workshop/CHANGELOG.txt": {
+      "bytes": 3133,
+      "sha256": "a189cc688573094304b57614eeecceafe5de48e3f325752b37f7fb9bf3d0860d"
+    },
+    "release/workshop/LICENSE-DECISION.md": {
+      "bytes": 1886,
+      "sha256": "f61877e4019b26ac6d0cd10b44e2b61842eac33227652efc1b51ac5e9b7968b6"
+    },
+    "release/workshop/Launch-Workshop.ps1": {
+      "bytes": 19766,
+      "sha256": "b61b0ffc860b24d2d8e9585a9f96c92c2d3d6687e70c40456bcbb779d75f35d1"
+    },
+    "release/workshop/README.zh-CN.md": {
+      "bytes": 4015,
+      "sha256": "3597da0ad0d51637bbea0d0a671dc960d0c64e536b59f2fd17f493878ef6d57e"
+    },
+    "release/workshop/START-HERE.txt": {
+      "bytes": 1333,
+      "sha256": "eb9226a5f13f72602e7f0ffb7118d04056b3da9c0c6017e22d1b226de5949b5a"
+    },
+    "release/workshop/UPLOAD.md": {
+      "bytes": 1927,
+      "sha256": "f59057cc164ad0be9bf8f87c910a85738e94e9b3e6646dba562c62766a3737a3"
+    },
+    "release/workshop/VALIDATION.md": {
+      "bytes": 3418,
+      "sha256": "0e60c56b1c9f1f54e064e37d85236510d1af52db6b4f05eeb5b58baf595103be"
+    },
+    "release/workshop/WORKSHOP-DESCRIPTION.en.txt": {
+      "bytes": 3833,
+      "sha256": "f23248c3cd6251de6d090e406b81c1b5745b4ecc610aff26b471538ceba34f5c"
+    },
+    "release/workshop/WORKSHOP-DESCRIPTION.txt": {
+      "bytes": 3446,
+      "sha256": "9d4bb886b4904c3b46129d48a41b62f49e5509dc3733442447f77ed7856c5ff8"
+    },
+    "release/workshop/artwork-source.gif": {
+      "bytes": 1087525,
+      "sha256": "a18d3a80ca24da41e90b78688546e96d40bf05e720c119f8e0a4ba00216e739a"
+    },
+    "release/workshop/modicon.png": {
+      "bytes": 21869,
+      "sha256": "bb39508423a1bd1ef05bce30aca099d861a51fc9ec9346fa0bdb8d37b216bae3"
+    },
+    "release/workshop/modpreview.gif": {
+      "bytes": 980832,
+      "sha256": "1d5e65c23aa45da46a567e8c6b23ac6bf9264f70d3c497c1319b5bb5eb3318c7"
+    },
+    "release/workshop/modpreview.png": {
+      "bytes": 209180,
+      "sha256": "6f3fc2a51b9ecb807f9e8193aabaab971cef44bebf10c629fa7922b64c66b345"
+    },
+    "release/workshop/preview.png": {
+      "bytes": 209180,
+      "sha256": "6f3fc2a51b9ecb807f9e8193aabaab971cef44bebf10c629fa7922b64c66b345"
+    },
+    "release/workshop/一键启动播放器.cmd": {
+      "bytes": 194,
+      "sha256": "814e388bb44081943d353d4f526c3de1c66b2ff0b87481e8af2a58b1dcf7be83"
+    },
+    "release/workshop/停止配套播放器.cmd": {
+      "bytes": 201,
+      "sha256": "bdeebad3b564018c6a4f3304abedc12a733155435b4f1020cefbda55bed63a5b"
+    },
+    "release/workshop/自启动设置.cmd": {
+      "bytes": 317,
+      "sha256": "16a91c4a273d641f10acf2c5fef5a3d1686bfce65bed4334d06c71b79e83d868"
+    },
+    "tests/backend.test.mjs": {
+      "bytes": 53846,
+      "sha256": "b5881eaf1d77772b2836d5415f58163804a5a10a695dfe8593fe2753631b3d72"
+    },
+    "tests/game-assets-lua.test.py": {
+      "bytes": 3216,
+      "sha256": "4d4572f856ce2c277aad0922943fe40b465f9963b7bfe06a450ff5f126703467"
+    },
+    "tests/game-assets.test.mjs": {
+      "bytes": 14369,
+      "sha256": "a942f11ffe7332c4fdcbaa5a1a7c861134fac1c6b3e635370e4ef1aa7a468834"
+    },
+    "tests/game-process-monitor.ps1": {
+      "bytes": 3066,
+      "sha256": "1b02dad0a7f68b4ebf063af68c00499fa9a17d23d09c6d7e3e1e7bb998d953d3"
+    },
+    "tests/game-request-integration.test.mjs": {
+      "bytes": 4281,
+      "sha256": "23fa1d02c95794313ba15d157e26e3865bf5ba1b0d7a9a7a246f63fcf0f1eaca"
+    },
+    "tests/game-requests.test.mjs": {
+      "bytes": 7043,
+      "sha256": "ad946e3202eef9a2cc36e64683617d53758b2d2af7c877e65fecb38c3d9c949f"
+    },
+    "tests/local-actions.test.mjs": {
+      "bytes": 2122,
+      "sha256": "07e20af6e94287ab453f932bc90662db1a353061a7dfc1fbe6f023e3dc561fc7"
+    },
+    "tests/lyric-glyphs.test.mjs": {
+      "bytes": 7893,
+      "sha256": "591dc7f083b90fdb58702928a891aecdbbb73b8852c3eb9c9c486ad04a8d26f5"
+    },
+    "tests/lyrics.test.mjs": {
+      "bytes": 1976,
+      "sha256": "9466fdc5134af68347867275a9e1d366ff21e17d7fc00f5aca36ca794aec4e0e"
+    },
+    "tests/media-dns.test.mjs": {
+      "bytes": 9393,
+      "sha256": "255217e4b270153512067d19e53deed2989d2979297793dea99cdb05423ccd0e"
+    },
+    "tests/music-sources.test.mjs": {
+      "bytes": 11522,
+      "sha256": "dd43f7d2a99c68dc76f530e8d206976ec27abae1fe10140dd7dd554725b9ef7a"
+    },
+    "tests/native-dsp-fixtures.cs": {
+      "bytes": 14637,
+      "sha256": "76d660dc4399cbd51fae02c85ab062adf55e3c3bc3311accb037eb4225e4904a"
+    },
+    "tests/native-dsp.ps1": {
+      "bytes": 4233,
+      "sha256": "0d18fbd4b0b987bd3a2ff72371b6ded45c47d715ac1cb0765edada8ccc88b399"
+    },
+    "tests/native-player-silence.mp3": {
+      "bytes": 64617,
+      "sha256": "07162bb0c319fcd4bf574374c5716aeeb72c285ae39f3ea933245d2ee7349c59"
+    },
+    "tests/native-player.test.mjs": {
+      "bytes": 19818,
+      "sha256": "bd611b4a38baeaa8f6f71643db63009e0d04770bea426047e3fb4b073b29610e"
+    },
+    "tests/native-stream-buffer.ps1": {
+      "bytes": 3160,
+      "sha256": "6fade8be0e9860aee4ea9059eb33005d2b95fbd53c5b84264858ac3601907d48"
+    },
+    "tests/portable-launcher/portable-launcher.ps1": {
+      "bytes": 7358,
+      "sha256": "004a941864bf1ac2dba8c1c698b47f993a92d4b96f5c9d70394ed555e9e62418"
+    },
+    "tests/portable-launcher/steam-library-discovery.ps1": {
+      "bytes": 8430,
+      "sha256": "408ca94cc6b585bb9be12267a36f4e8111a97b0ae37e075036f5ced9551b1a5a"
+    },
+    "tests/portable-launcher/workshop-bootstrap.ps1": {
+      "bytes": 14229,
+      "sha256": "a66d661555f8f1a663791b33597f8691381e7e6f2ee595547028820064746dba"
+    },
+    "tests/portable-launcher/workshop-launcher.ps1": {
+      "bytes": 10917,
+      "sha256": "20322331ab6284f3822dbdfc831d097440b4763b1b936878201331cbf43a4153"
+    },
+    "tests/portable-package-smoke.mjs": {
+      "bytes": 6626,
+      "sha256": "2e9918586df3df47fa2a308740a614681ab3c397034c1cb0859fa126ed8ca239"
+    },
+    "tests/qq-login.test.mjs": {
+      "bytes": 6302,
+      "sha256": "ea75e0ffde32c425ca1800299ebbc5a032e8755ab1daf2a347110ebf17e62da8"
+    },
+    "tests/qq-lyrics.test.mjs": {
+      "bytes": 1951,
+      "sha256": "26d0f40f5a6a1f84ff8d651259577190247ed3db7c74d6f38601c4e9c042e9a0"
+    },
+    "tests/qqmusic.test.mjs": {
+      "bytes": 7472,
+      "sha256": "cac1177a841d4c359706c898de4f457901ee610ff808964486b86ef4202b7d5c"
+    },
+    "tests/runtime-assets.test.mjs": {
+      "bytes": 4921,
+      "sha256": "15c09b7d5749a9068c22e5f7dab3c74047b04ae6f42ef63b0223030761cc2c81"
+    },
+    "tests/test_complete_release.py": {
+      "bytes": 11058,
+      "sha256": "bba58f01c2d207a31afa40c130454842003e2818b9f6b6691af1e5a0373b7cf8"
+    },
+    "tests/test_ktex.py": {
+      "bytes": 2804,
+      "sha256": "778ea180a74948253d1d088d780925fc2029ee1025b1fbb1b6f3d680bed93dbd"
+    },
+    "tests/test_lyric_glyphs.py": {
+      "bytes": 11841,
+      "sha256": "16f676ea4d683665c7d73c7d8da46c45ef175bcc820fe437067d47a45e7eb977"
+    },
+    "tests/test_private_patterns.py": {
+      "bytes": 1590,
+      "sha256": "6d6d439c71cef6988ec5d5eab5f0c089d5af8fddc812056d76df9b8704ea8905"
+    },
+    "tests/test_workshop_build.py": {
+      "bytes": 15823,
+      "sha256": "255181b978ccbc096a0c94b8310002be2821da2343bf11f0c4b63977bad7800c"
+    },
+    "tests/ui-fixture.mjs": {
+      "bytes": 2111,
+      "sha256": "d9168e0f624c997fe173429ff1af43c60c2e3e6813065194b04a3c3dbe9d890e"
+    },
+    "tests/updates.test.mjs": {
+      "bytes": 10002,
+      "sha256": "2cd95bd6805cd4aa059fa3621124581f15fdad73902c2c70d280daa6927973fb"
+    },
+    "tools/build-complete-release.py": {
+      "bytes": 10069,
+      "sha256": "aa713ab5b3420d7f8d04a75414b123c1409b7636bb43159f932502d4b8c003eb"
+    },
+    "tools/build-release.py": {
+      "bytes": 7585,
+      "sha256": "0ef0514bb9101ea90b7ab40d37dbfd4db41ac1c7bd9f0f54774ea1c4c1a20e92"
+    },
+    "tools/build-workshop.py": {
+      "bytes": 14231,
+      "sha256": "b15e81414f7c50d91f62f0bb6236ddcff4b4058fd2c65ae98861a096d7b9e14c"
+    },
+    "tools/create-workshop-art.py": {
+      "bytes": 4238,
+      "sha256": "12ceb91cf2dd634d7734a4999b3b36bff827a2893fcd98342b9c6a8c9d148cf3"
+    },
+    "tools/prepare-runtime.py": {
+      "bytes": 4700,
+      "sha256": "79214fae4c696a29973920673bb9820dffde0c0881155ac8cb5e7a33aeb919a3"
+    },
+    "tools/runtime-lock.json": {
+      "bytes": 954,
+      "sha256": "356208ef2199edf507a89e2b0050118d4be9ff238b80b4db300432bc4422578f"
+    },
+    "停止播放器.cmd": {
+      "bytes": 161,
+      "sha256": "fba99891e5c6f96fb80f4b5b0850f6f8f8c404c0a936c273d45a6c4b5cb3f917"
+    },
+    "启动播放器.cmd": {
+      "bytes": 162,
+      "sha256": "5161558a4a40dd8d985bf71ebdf9f6457ea11f26067482438a5915bf0b7ca5d2"
+    },
+    "安装客户端Mod.cmd": {
+      "bytes": 148,
+      "sha256": "68d1dc3c73b2971eea53d00604d4f02bbd27f9c10844000811f15b4b829de8e0"
+    },
+    "连接工坊Mod.cmd": {
+      "bytes": 150,
+      "sha256": "aa7dfe86e5143bb4e4aaf3dd08b32087bb1fc9a230b45d45905797a23f6125e9"
+    }
+  },
+  "overallLicenseDecision": "component-licenses-preserved",
+  "product": "Source",
+  "stage": "workshop-beta-upload-bundle",
+  "uploaded": false,
+  "version": "0.6.0-beta.3"
+}

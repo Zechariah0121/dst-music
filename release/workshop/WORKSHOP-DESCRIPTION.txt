@@ -1,0 +1,43 @@
+[h1]让音乐陪你走进永恒领域[/h1]
+探索、建家、航海、下洞穴，在游戏里听自己的网易云和 QQ 音乐歌单。
+
+[h2]功能[/h2]
+[list]
+[*]扫码登录、浏览歌单和搜索，控制播放、进度、音量、队列和循环。两平台账号独立，切换浏览来源不会打断当前歌曲。
+[*]悬浮歌词、封面、歌曲卡片和动态岛；调整歌词、快捷键、界面与左上角按钮。
+[*]地区和雨天空间音效处理音乐本身；关闭饥荒客户端后自动暂停，重新进入后手动继续。
+[*]版本检查读取 GitHub Releases；可手动检查，启动和每六小时的自动检查可关闭，不会自动安装。工坊订阅由 Steam 更新。
+[/list]
+[b]纯客户端模组，服务器和朋友无需安装。支持 Windows 10/11 64 位。[/b]
+
+[h2]实机演示[/h2]
+[b]游戏内播放器[/b]
+[img]https://images.steamusercontent.com/ugc/9967333670796669768/43964D7CDC40157871B5D730DA9D55021F092125/[/img]
+
+[b]世界悬浮歌词[/b]
+[img]https://images.steamusercontent.com/ugc/9851184035425131933/4C1230D1FD3593569ACBD5E5F6D21F48C9C36E40/[/img]
+
+[b]歌词颜色与辉光[/b]
+[img]https://images.steamusercontent.com/ugc/17892579911571876610/988DFB2244BC1D532EACDC75BE1D00FCD77A5148/[/img]
+
+[b]逐词动画[/b]
+[img]https://images.steamusercontent.com/ugc/17996337735614244100/AD30AC25103DA485CC36303C4AFF554178127799/[/img]
+
+[b]地区与雨天音效设置[/b]
+[img]https://images.steamusercontent.com/ugc/16653959750613450059/1516D6705146B5C211F3908879D8AB85496CBBEC/[/img]
+
+[h2]首次使用[/h2]
+[list]
+[*]订阅并等待 Steam 下载完成，打开本模组工坊目录，双击根目录的「一键启动播放器.cmd」。配套播放器随包提供，会自动校验、解压、连接并启动。
+[*]在客户端模组启用本模组，进入世界按 F8。若已加载旧版 Lua，更新后需重载一次；播放器就绪后，可通过 ESC → 设置 → 连接播放器 重读连接。
+[*]账号页选择网易云或 QQ 音乐，用对应手机 App 扫码并确认。以后可再次双击启动；也可在「自启动设置.cmd」中勾选并保存，让后台随 Windows 登录启动，默认关闭。
+[/list]
+首次至少需要双击一次：游戏不能直接从零启动本地程序。停止后台可运行 windows-player 中的「停止配套播放器.cmd」。打开模组目录后若窗口被遮挡，可按 Alt+Tab 切换。旧手动版不会自动迁移，首次使用一键版可能需要重新扫码。工坊目录通常位于 Steam库\steamapps\workshop\content\322330\3836261433，或游戏目录 mods\workshop-3836261433。
+
+[h2]测试版说明[/h2]
+[list]
+[*]订阅不会自动启动后台，播放需要后台运行。网易云和 QQ 音乐的会员、版权、地区及试听限制仍然有效；部分 QQ 歌曲即使手机能播放，接口也可能不提供地址。
+[*]普通逐行歌词的逐词动画为估算；准确逐词同步需要来源提供时间戳。玻璃效果为半透明分层高光，并非背景模糊。
+[*]暂不支持导入本地音频、跨玩家同步播放和 Mac/Linux。
+[/list]
+由 Zcc 制作，非网易云、QQ 音乐、Klei 或 DangoMusic 官方产品。包含基于 [url=https://github.com/Sorihiko/DangoMusic]Sorihiko / DangoMusic[/url] 的 GPLv3 衍生音频与 QQ 互操作实现；对应源码、GPL 正文及其他第三方许可随包提供，详见包内 THIRD-PARTY-NOTICES.md 和 LICENSE-DECISION.md。

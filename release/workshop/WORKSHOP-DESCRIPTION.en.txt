@@ -1,0 +1,43 @@
+[h1]Bring your music into the Constant[/h1]
+Listen to your NetEase Cloud Music and QQ Music playlists while exploring, building, sailing or venturing into the caves.
+
+[h2]Features[/h2]
+[list]
+[*]Sign in by QR code, browse playlists and search, with playback, seek, volume, queue and repeat controls. Accounts are separate; switching browsing sources does not interrupt the current song.
+[*]Floating lyrics, album artwork, song cards and a compact player, with adjustable lyrics, hotkeys, interface and top-left button.
+[*]Regional and rain spatial effects process the music. Closing the DST client pauses playback; resume manually after reopening.
+[*]Version checks read GitHub Releases; check manually or disable automatic startup and six-hour checks. Updates are not installed automatically. Steam updates Workshop subscriptions.
+[/list]
+[b]Client-only mod: your server and friends do not need to install it. Supports 64-bit Windows 10/11.[/b]
+
+[h2]In-game demos[/h2]
+[b]In-game music player[/b]
+[img]https://images.steamusercontent.com/ugc/9967333670796669768/43964D7CDC40157871B5D730DA9D55021F092125/[/img]
+
+[b]Floating world lyrics[/b]
+[img]https://images.steamusercontent.com/ugc/9851184035425131933/4C1230D1FD3593569ACBD5E5F6D21F48C9C36E40/[/img]
+
+[b]Lyric colors and glow[/b]
+[img]https://images.steamusercontent.com/ugc/17892579911571876610/988DFB2244BC1D532EACDC75BE1D00FCD77A5148/[/img]
+
+[b]Word-by-word animation[/b]
+[img]https://images.steamusercontent.com/ugc/17996337735614244100/AD30AC25103DA485CC36303C4AFF554178127799/[/img]
+
+[b]Regional and rainy-weather audio settings[/b]
+[img]https://images.steamusercontent.com/ugc/16653959750613450059/1516D6705146B5C211F3908879D8AB85496CBBEC/[/img]
+
+[h2]First-time setup[/h2]
+[list]
+[*]Subscribe, wait for Steam to download the mod, open its Workshop folder and double-click 一键启动播放器.cmd (One-click Start Player) at the root. The included companion is checked, extracted, connected and started automatically.
+[*]Enable the mod under Client Mods, enter a world and press F8. If the game already loaded older Lua, reload it once after updating; once the player is ready, use ESC → Settings → Connect Player to reload the connection.
+[*]Choose NetEase or QQ Music on the account page and confirm the QR login with the corresponding phone app. Later, double-click the launcher again, or use 自启动设置.cmd (Startup Settings) to opt in to starting it on Windows sign-in. Startup is off by default.
+[/list]
+The first launch requires a double-click: the game cannot launch the local program from scratch. To stop it, run 停止配套播放器.cmd (Stop Companion Player) in windows-player. If the opened mod folder is obscured, use Alt+Tab. Existing manual installations are not migrated automatically; a new QR sign-in may be needed. The Workshop folder is usually SteamLibrary\steamapps\workshop\content\322330\3836261433 or mods\workshop-3836261433 inside the game folder.
+
+[h2]Beta notes[/h2]
+[list]
+[*]Subscribing does not start the companion. Platform membership, licensing, region and preview restrictions apply; some QQ songs playable on a phone may not return a playback URL through the interface.
+[*]Word timing for ordinary line-timed lyrics is estimated; accurate timing requires word timestamps. Glass styling uses translucent layers and highlights, not background blur.
+[*]Local audio imports, synchronized listening across players and Mac/Linux are not supported.
+[/list]
+Created by Zcc; not an official NetEase, QQ Music, Klei or DangoMusic product. Includes GPLv3-derived audio and QQ interoperability implementations based on [url=https://github.com/Sorihiko/DangoMusic]Sorihiko / DangoMusic[/url]. Corresponding source, GPL text and other third-party licenses are included; see THIRD-PARTY-NOTICES.md and LICENSE-DECISION.md in the package.

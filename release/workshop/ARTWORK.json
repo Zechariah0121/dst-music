@@ -1,0 +1,33 @@
+{
+  "source": "artwork-source.gif",
+  "sourceSha256": "a18d3a80ca24da41e90b78688546e96d40bf05e720c119f8e0a4ba00216e739a",
+  "providedBy": "Zcc",
+  "originalFileName": "dangomusic.gif",
+  "sourceSize": [
+    205,
+    224
+  ],
+  "frames": 64,
+  "selectedFrame": 0,
+  "previewSize": [
+    512,
+    512
+  ],
+  "modiconSize": [
+    128,
+    128
+  ],
+  "visibleUnionCrop": [
+    0,
+    0,
+    199,
+    201
+  ],
+  "animationSize": [
+    201,
+    201
+  ],
+  "processing": "Crop only margins transparent in every frame; composite onto opaque source-red square; no visible content removed.",
+  "animatedPreview": "64 frames and original timings preserved; 128-color quantization to fit below 1 MB.",
+  "license": "User-supplied artwork; not automatically covered by the project code license."
+}

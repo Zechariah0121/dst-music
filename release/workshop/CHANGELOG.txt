@@ -1,0 +1,23 @@
+0.6.0-beta.3 — 测试候选
+
+首页与歌单按来源及账号缓存五分钟，重开时先显示已有内容并后台刷新，失败保留旧内容；封面复用并回收资源。按钮对比度增强，ESC 中的音乐设置与连接入口采用原生设置样式并位于左列底部。打开模组目录会复用并尝试聚焦已有窗口，必要时可用 Alt+Tab。
+新增 GitHub Releases 版本检查（工坊订阅由 Steam 更新）：启动及每六小时自动检查可关闭，也可手动检查，不自动安装。原生下载失败后可显式播放重试。以上新功能尚待实际游戏验收；目前没有 beta.3 Release。
+
+0.6.0-beta.3 — test candidate
+
+Home and playlists retain account- and provider-isolated caches for five minutes, displaying cached content while refreshing; failed refreshes retain the previous content. Artwork is reused and released. Higher-contrast buttons and native-style music settings and connection entries improve navigation. Opening the mod folder reuses and attempts to focus an existing window; use Alt+Tab if it is obscured.
+Version checks use GitHub Releases; Steam updates Workshop subscriptions: startup and six-hour automatic checks can be disabled, and manual checks never install updates. Explicit playback can retry after a native download failure. These changes await in-game validation; no beta.3 Release is available yet.
+
+0.6.0-beta.2 — 测试候选
+
+新增 QQ 音乐账号扫码、歌单与搜索支持；网易云和 QQ 账号独立，切换浏览来源不会中断另一来源的当前歌曲。播放仍受平台权限及接口返回地址限制，部分歌曲暂不可播。
+播放器界面统一布局并区分来源主题；设置按功能分组、补充说明，可隐藏默认显示的左上角按钮。玻璃效果使用半透明分层高光。
+慢请求转为后台任务并短轮询，针对 beta.1 实测发现的引擎低速错误；beta.2 游戏内效果仍待验收。
+工坊包新增一键启动、连接及可选 Windows 自启动（默认关闭）。ESC → 设置提供连接播放器及音乐设置入口；加载新版 Lua 后可重读连接。旧手动版不自动迁移，首次使用一键版可能需要重新登录。
+
+0.6.0-beta.2 — test candidate
+
+Adds QQ Music QR sign-in, playlists and search alongside NetEase Cloud Music. Accounts are separate; switching browsing sources does not interrupt the current song. Playback depends on platform permissions and available URLs; some tracks remain unavailable.
+The player uses a unified layout with source themes, grouped settings and clearer explanations. The top-left button can be hidden. Glass styling uses translucent layers and highlights.
+Slow requests now run in background tasks with short polling following a beta.1 engine low-speed error. In-game validation of beta.2 remains pending.
+The Workshop package adds one-click installation, connection and optional Windows startup (off by default). After loading the updated Lua, the in-game settings can reload the connection. Existing manual installations are not migrated automatically and a fresh sign-in may be needed.
