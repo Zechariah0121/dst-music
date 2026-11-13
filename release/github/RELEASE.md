@@ -1,15 +1,15 @@
 ## 云间音乐 / DangoMusic 0.6.0-beta.3
 
-Windows 10/11 64 位测试版。游戏 Mod 的固定工坊条目：[3836261433](https://steamcommunity.com/sharedfiles/filedetails/?id=3836261433)。
+Windows 10/11 64 位测试版。[下载与版本列表](https://github.com/Zechariah0121/dst-music/releases)。游戏 Mod 的固定工坊条目：[3836261433](https://steamcommunity.com/sharedfiles/filedetails/?id=3836261433)。
 
 - 首页与歌单缓存按音源、账号隔离；重开先显示缓存，过期后后台刷新。
 - 滚动时立即复用已有封面，切歌、隐藏和关闭时释放旧图片资源。
-- 提高按钮文字对比度；ESC 设置中的音乐入口移到内容区并采用原生样式。
+- 提高按钮文字对比度；ESC 主菜单提供单个原生“音乐播放器”入口；在线打开音乐设置，离线进入连接页并重读连接。
 - 打开模组目录会尝试显示已有窗口，并反馈是否需要按 Alt+Tab。
 - 新增 GitHub 版本检查和固定工坊入口，可关闭自动检查，不会自动安装。
 - 原生音频下载失败后，再次点击播放可重新尝试。
 
-已通过本地后端、原生音频、Lua 离线契约与打包检查。游戏内视觉效果及真实工坊订阅更新仍需持续反馈；自动化检查不代表完整游戏验收。
+本地后端、原生音频、Lua 离线契约与打包检查已通过；游戏内已检查旧入口、连接、主题切换、缓存和滚动等部分流程。新的 ESC 主菜单入口和网易云推荐封面修复已通过离线或后台验证，游戏内仍待验收；真实工坊订阅更新等也待验收。自动化检查不代表完整游戏验收。
 
 ### 下载与更新
 
@@ -24,6 +24,6 @@ Steam 负责更新游戏 Mod；Windows 配套程序需要重新启动新版。�
 
 ### English
 
-This Windows beta improves account-separated home/playlist caching, scrolling artwork, resource cleanup, button readability and native-style ESC settings entries. It adds GitHub release checks and clearer folder-opening feedback, and allows explicit retry after a failed native audio download. Update checks never install software automatically.
+This Windows beta improves account-separated home/playlist caching, scrolling artwork, resource cleanup, button readability and a native-style ESC main-menu entry. It adds GitHub release checks and clearer folder-opening feedback, and allows explicit retry after a failed native audio download. Update checks never install software automatically.
 
-Use **Windows-Companion.zip** with the subscribed client Mod. **Release.zip** contains the complete Workshop upload bundle, companion, source and notices. Playback remains subject to each service's account permissions and API availability. In-game appearance and real Workshop update behavior still require player validation.
+Use **Windows-Companion.zip** with the subscribed client Mod. **Release.zip** contains the complete Workshop upload bundle, companion, source and notices. Playback remains subject to each service's account permissions and API availability. Some in-game flows were checked; the new ESC entry and recommended artwork fix still await in-game validation. Real Workshop update behavior and other scenarios still require validation.

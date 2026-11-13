@@ -37,11 +37,13 @@ jobs:
       - name: Prepare verified official runtimes
         run: python tools/prepare-runtime.py
       - name: Backend and update checks
+        env:
+          DANGO_PYTHON: ${{ github.workspace }}/runtime/python/python.exe
         run: >-
           runtime/node/node.exe --test tests/backend.test.mjs tests/updates.test.mjs
           tests/local-actions.test.mjs tests/game-request-integration.test.mjs
           tests/music-sources.test.mjs tests/qqmusic.test.mjs tests/qq-login.test.mjs
-          tests/qq-lyrics.test.mjs
+          tests/qq-lyrics.test.mjs tests/game-assets.test.mjs
       - name: Packaging and privacy checks
         run: |
           python -m unittest discover -s tests -p test_workshop_build.py

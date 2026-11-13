@@ -18,6 +18,7 @@ const qqCoverPaths = new Map([
   ['qpic.y.qq.com', '/music_cover/'],
   ['music-file.y.qq.com', '/songlist/'],
 ]);
+const neteaseThumbnailHosts = new Set(['p1.music.126.net','p2.music.126.net','p3.music.126.net','p4.music.126.net']);
 const hash = value => createHash('sha256').update(value).digest('hex');
 const failure = code => Object.assign(new Error(code), {code});
 
@@ -171,7 +172,12 @@ export function createGameAssets({stateDir, modDir, runtimeModDir,
         return Promise.reject(failure('COVER_TRACK_INVALID'));
       }
       const value = canonicalCoverUrl(url).href;
-      return build('cover', `${trackId}:${value}`, value);
+      const imageUrl = new URL(value);
+      // These NetEase image CDNs provide server-side resizing. Keep the
+      // original URL as the cache identity so already-compiled assets remain
+      // reusable, while oversized source JPEGs stay within our decoder cap.
+      if (neteaseThumbnailHosts.has(imageUrl.hostname)) imageUrl.searchParams.set('param', '512y512');
+      return build('cover', `${trackId}:${value}`, imageUrl.href);
     },
     qr(key, url) { const value = validateQrUrl(key, url); return build('qr', value, value); },
     qrImage(key, png) {

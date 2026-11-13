@@ -7,7 +7,6 @@ local MusicLyrics = G.require("widgets/music_lyrics")
 local MusicSongCard = G.require("widgets/music_songcard")
 local MusicIsland = G.require("widgets/music_island")
 local ImageButton = G.require("widgets/imagebutton")
-local TEMPLATES = G.require("widgets/redux/templates")
 local UI = G.require("widgets/music_ui_common")
 UI.atlas = MODROOT.."images/music/ui.xml"
 Assets = {
@@ -124,34 +123,55 @@ AddClassPostConstruct("widgets/controls", function(controls)
     end)
 end)
 
--- Keep a recovery route when the HUD entry is hidden or its key conflicts
--- with another mod. This only extends the in-world ESC options instance.
-AddClassPostConstruct("screens/redux/optionsscreen", function(screen)
+-- A single native ESC entry keeps the game's settings grid unobstructed.
+-- BuildMenu can run again after construction, so extend each new menu once.
+AddClassPostConstruct("screens/redux/pausescreen", function(screen)
     local player=G.ThePlayer
     local controls=player and player.HUD and player.HUD.controls
     local controller=controls and controls.dangomusic
-    local settingsroot=screen.subscreener and screen.subscreener.sub_screens.settings
-    if not controller or not settingsroot or
-        not G.TheFrontEnd:GetOpenScreenOfType("PauseScreen") then return end
-    -- Native settings have nine rows in the left column and a divider at
-    -- y=-225. Keep these actions inside that tab, below the existing rows.
-    local connect=settingsroot:AddChild(TEMPLATES.StandardButton(function()
-        if controls.OpenDangoMusic and controls:OpenDangoMusic("connection") then controller:Reconnect() end
-    end,"一键连接播放器",{300,32}))
-    connect:SetPosition(-35,-174)
-    connect:SetTextSize(18)
-    connect:SetTooltip("重新读取一键启动器生成的连接，已进入世界也无需重启。首次请先双击工坊目录的一键启动播放器。")
-    local settings=settingsroot:AddChild(TEMPLATES.StandardButton(function()
-        if controls.OpenDangoMusic then controls:OpenDangoMusic("settings") end
-    end,"音乐设置 / 打开播放器",{300,32}))
-    settings:SetPosition(-35,-210)
-    settings:SetTextSize(18)
-    settings:SetTooltip("调整音乐界面与歌词；即使隐藏左上角按钮也能从这里打开。")
-    local last=screen.left_spinners and screen.left_spinners[#screen.left_spinners]
-    if last and last.parent then
-        last.parent:SetFocusChangeDir(G.MOVE_DOWN,connect)
-        connect:SetFocusChangeDir(G.MOVE_UP,last.parent)
+    if not controller then return end
+
+    local function LayoutMenu(menu)
+        if screen.menu~=menu or not menu.inst:IsValid() then return end
+        -- Leave room for the title and help text even when other mods append
+        -- entries. Keep the native spacing while the list fits ten rows.
+        local step=G.math.min(-menu.offset,450/G.math.max(1,#menu.items-1))
+        menu.offset=-step
+        for i,item in G.ipairs(menu.items) do item:SetPosition(0,-step*(i-1),0) end
+        local pos=menu:GetPosition()
+        menu:SetPosition(pos.x,step*(#menu.items-1)/2,pos.z)
+        local height=G.math.min(500,step*#menu.items+30)
+        local width=screen.bg:GetSize()
+        screen.bg:SetSize(width,height)
+        screen.bg.body:SetRegionSize(width,height)
+        if screen.feedback_hint then screen.feedback_hint:SetPosition(0,-height/2-80,0) end
+        if screen.feedback_shadow then screen.feedback_shadow:SetPosition(2,-height/2-82,0) end
     end
-    connect:SetFocusChangeDir(G.MOVE_DOWN,settings)
-    settings:SetFocusChangeDir(G.MOVE_UP,connect)
+
+    local function AttachToMenu()
+        local menu=screen.menu
+        if not menu or menu._dangomusic_button then return end
+        local button
+        button=menu:AddItem("音乐播放器",function()
+            if not controls.OpenDangoMusic then return end
+            screen.last_focus=button
+            local online=controller.backendConnected==true
+            if controls:OpenDangoMusic(online and "settings" or "connection") and not online then controller:Reconnect() end
+        end)
+        menu._dangomusic_button=button
+        button:SetScale(.7)
+        button:SetTooltip("打开音乐设置与播放器；后台离线时进入一键连接页面。")
+        LayoutMenu(menu)
+        -- Other constructor hooks may append their own items after ours.
+        screen.inst:DoTaskInTime(0,function() LayoutMenu(menu) end)
+    end
+    local previous=screen.BuildMenu
+    screen.BuildMenu=function(self,...)
+        local function Finish(...)
+            AttachToMenu()
+            return ...
+        end
+        return Finish(previous(self,...))
+    end
+    AttachToMenu()
 end)

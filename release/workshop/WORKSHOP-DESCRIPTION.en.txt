@@ -29,7 +29,7 @@ Listen to your NetEase Cloud Music and QQ Music playlists while exploring, build
 [h2]First-time setup[/h2]
 [list]
 [*]Subscribe, wait for Steam to download the mod, open its Workshop folder and double-click 一键启动播放器.cmd (One-click Start Player) at the root. The included companion is checked, extracted, connected and started automatically.
-[*]Enable the mod under Client Mods, enter a world and press F8. If the game already loaded older Lua, reload it once after updating; once the player is ready, use ESC → Settings → Connect Player to reload the connection.
+[*]Enable the mod under Client Mods, enter a world and press F8. If the game already loaded older Lua, reload it once after updating; use ESC → Music Player: it opens music settings when online, or the connection page and reloads the connection when offline.
 [*]Choose NetEase or QQ Music on the account page and confirm the QR login with the corresponding phone app. Later, double-click the launcher again, or use 自启动设置.cmd (Startup Settings) to opt in to starting it on Windows sign-in. Startup is off by default.
 [/list]
 The first launch requires a double-click: the game cannot launch the local program from scratch. To stop it, run 停止配套播放器.cmd (Stop Companion Player) in windows-player. If the opened mod folder is obscured, use Alt+Tab. Existing manual installations are not migrated automatically; a new QR sign-in may be needed. The Workshop folder is usually SteamLibrary\steamapps\workshop\content\322330\3836261433 or mods\workshop-3836261433 inside the game folder.

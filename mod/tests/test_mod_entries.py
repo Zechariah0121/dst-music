@@ -10,6 +10,7 @@ args = parser.parse_args()
 lua = LuaRuntime(unpack_returned_tuples=True)
 with ZipFile(args.scripts_zip) as source:
     lua.execute(source.read('scripts/class.lua').decode('utf-8-sig'))
+    menu_source = source.read('scripts/widgets/menu.lua').decode('utf-8-sig')
 lua.execute(r'''
 GLOBAL=_G; MODROOT='mod/'; KEY_F8=119; CHATFONT='chat'; MOVE_UP=1; MOVE_DOWN=2
 Asset=function() return {} end
@@ -18,10 +19,14 @@ kleiloadlua=function() return function() return {token='test'} end end
 TheNet={IsDedicated=function() return false end}
 hooks={}; AddClassPostConstruct=function(name,fn) hooks[name]=fn end
 function Node()
- local n={children={},shown=true,enabled=true,image={SetSize=function() end,SetTint=function() end}}
+ local n={children={},shown=true,enabled=true,image={SetSize=function() end,SetTint=function() end,SetScale=function() end},text={SetColour=function() end}}
+ n.inst={IsValid=function() return not n.killed end}
  function n:AddChild(child) self.children[#self.children+1]=child; child.parent=self; return child end
- for _,name in ipairs({'SetNormalScale','SetFocusScale','SetFont','SetTextSize','SetTextColour','SetTooltip'}) do n[name]=function() end end
- function n:SetPosition(x,y) self.x,self.y=x,y end
+ for _,name in ipairs({'SetNormalScale','SetFocusScale','SetFont','SetTextSize','SetTextColour','SetTooltip','SetOnGainFocus'}) do n[name]=function() end end
+ function n:SetPosition(x,y,z) if type(x)=='table' then self.x,self.y,self.z=x.x,x.y,x.z else self.x,self.y,self.z=x,y,z end end
+ function n:GetPosition() return {x=self.x or 0,y=self.y or 0,z=self.z or 0} end
+ function n:SetScale(v) self.scale=v end
+ function n:Kill() self.killed=true end
  function n:SetFocusChangeDir(dir,widget) self.focusDirs=self.focusDirs or {};self.focusDirs[dir]=widget end
  function n:SetText(text) self.text=text end
  function n:SetOnClick(fn) self.onclick=fn end
@@ -34,6 +39,12 @@ function Node()
  return n
 end
 package.preload['widgets/imagebutton']=function() return Node end
+package.preload['widgets/button']=function() return Node end
+package.preload['widgets/text']=function() return Node end
+package.preload['widgets/widget']=function()
+ return Class(function(self) for k,v in pairs(Node()) do self[k]=v end end)
+end
+Vector3=function(x,y,z) return {x=x,y=y,z=z} end
 package.preload['widgets/redux/templates']=function()
  return {StandardButton=function(fn,text,size) local n=Node();n.onclick=fn;n.text=text;n.nativeStyle=true;n.size=size;return n end}
 end
@@ -60,6 +71,7 @@ package.preload['screens/dangomusicscreen']=function()
  end
 end
 TheInput={handlers={}}
+function TheInput:ControllerAttached() return false end
 function TheInput:AddKeyUpHandler(key,fn)
  local h={key=key,fn=fn,Remove=function(self) self.removed=true end};self.handlers[#self.handlers+1]=h;return h
 end
@@ -71,6 +83,7 @@ function TheFrontEnd:GetOpenScreenOfType(name) return name=='PauseScreen' and se
 ThePlayer={HUD={HasInputFocus=function() return false end}}
 TheFrontEnd.active=ThePlayer.HUD
 ''')
+lua.globals().NativeMenu = lua.execute(menu_source)
 lua.execute((Path(__file__).resolve().parents[1] / 'modmain.lua').read_text(encoding='utf-8-sig'))
 lua.execute(r'''
 local controls=Node();controls.owner=ThePlayer;controls.topleft_root=Node()
@@ -84,24 +97,46 @@ assert(not button.shown and not button.enabled and not button.focus)
 TheInput.handlers[1].fn()
 assert(TheFrontEnd.active.name=='MusicScreen','hidden button must not disable shortcut')
 TheFrontEnd.active:Close()
-local nativeSettings=Node();local lastRow=Node()
-local menu={name='OptionsScreen',root=Node(),subscreener={sub_screens={settings=nativeSettings}},left_spinners={{parent=lastRow}}};TheFrontEnd.active=menu
-hooks['screens/redux/optionsscreen'](menu)
-assert(#menu.root.children==0,'main-menu options must not get an in-world recovery entry')
-TheFrontEnd.pause={name='PauseScreen'}
-hooks['screens/redux/optionsscreen'](menu)
-local connect,settings
-for _,w in ipairs(nativeSettings.children) do
- if w.text=='一键连接播放器' then connect=w elseif w.text=='音乐设置 / 打开播放器' then settings=w end
+assert(not hooks['screens/redux/optionsscreen'],'native options grid must remain untouched')
+local tasks={}
+local pause={name='PauseScreen',bg={body={SetRegionSize=function() end}},inst={DoTaskInTime=function(_,_,fn) tasks[#tasks+1]=fn end}}
+function pause.bg:GetSize() return 190,self.height end
+function pause.bg:SetSize(_,height) self.height=height end
+function pause:BuildMenu()
+ if self.menu then self.menu:Kill() end
+ self.menu=NativeMenu({},-50,false,'carny_xlong',nil,30)
+ for i=1,9 do self.menu:AddItem('Existing '..i,function() end) end
+ self.options_button_index=4;self.pause_button_index=2;self.scrapbook_button_index=7
+ return 'preserved'
 end
-assert(connect and settings)
-assert(#menu.root.children==0 and connect.parent==nativeSettings and settings.parent==nativeSettings)
-assert(connect.nativeStyle and settings.nativeStyle and connect.x==-35 and connect.y==-174 and settings.y==-210)
-assert(connect.focusDirs[MOVE_DOWN]==settings and settings.focusDirs[MOVE_UP]==connect and lastRow.focusDirs[MOVE_DOWN]==connect)
-connect.onclick()
-assert(c.reconnects==1 and TheFrontEnd.active.view=='connection')
-TheFrontEnd.active:Close();settings.onclick()
-assert(TheFrontEnd.active.view=='settings')
+pause:BuildMenu();TheFrontEnd.active=pause
+hooks['screens/redux/pausescreen'](pause)
+local entry=pause.menu._dangomusic_button
+assert(#pause.menu.items==10 and pause.menu.items[10]==entry and entry.text=='音乐播放器')
+assert(entry.focusDirs[MOVE_UP]==pause.menu.items[9] and pause.menu.items[9].focusDirs[MOVE_DOWN]==entry)
+entry.onclick()
+assert(c.reconnects==1 and TheFrontEnd.active.view=='connection' and pause.last_focus==entry)
+TheFrontEnd.active:Close();c.backendConnected=true;entry.onclick()
+assert(c.reconnects==1 and TheFrontEnd.active.view=='settings','online entry must not invalidate caches by reconnecting')
+TheFrontEnd.active:Close()
+-- Another mod appends an entry after our constructor hook. The next-frame
+-- layout keeps it in the list and leaves the native callback indexes intact.
+pause.menu:AddItem('Other mod',function() end)
+for _,fn in ipairs(tasks) do fn() end;tasks={}
+assert(#pause.menu.items==11 and pause.menu.items[11].text=='Other mod')
+assert(pause.options_button_index==4 and pause.pause_button_index==2 and pause.scrapbook_button_index==7)
+assert(pause.menu.items[1].y-pause.menu.items[11].y<=450 and pause.bg.height<=500)
+assert(pause.menu.items[10].focusDirs[MOVE_DOWN]==pause.menu.items[11])
+local old=pause.menu
+assert(pause:BuildMenu()=='preserved' and old.killed)
+assert(#pause.menu.items==10 and pause.menu._dangomusic_button~=entry,'rebuilt menu needs exactly one new entry')
+for _,fn in ipairs(tasks) do fn() end
+local saved=ThePlayer;ThePlayer=nil
+local outOfWorld={BuildMenu=function() end}
+hooks['screens/redux/pausescreen'](outOfWorld)
+assert(outOfWorld.menu==nil)
+ThePlayer=saved
+pause.menu._dangomusic_button.onclick()
 c.settings.player.showTopLeftButton=true;c:Notify()
 assert(button.shown and button.enabled)
 local panel=TheFrontEnd.active
@@ -109,4 +144,4 @@ controls.inst.onremove()
 assert(panel.closed and c.closed and controls.dangomusic==nil and controls.OpenDangoMusic==nil)
 for _,h in ipairs(TheInput.handlers) do assert(h.removed) end
 ''')
-print('PASS: hide/show HUD entry, shortcut preservation, ESC recovery scope, HUD cleanup')
+print('PASS: HUD visibility, native ESC menu and focus, late mod entries, rebuild, offline recovery, HUD cleanup')

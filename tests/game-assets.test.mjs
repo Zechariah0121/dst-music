@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {mkdtemp, mkdir, writeFile, readFile, readdir, rm, stat, symlink} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
+import {createHash} from 'node:crypto';
 import {createGameAssets, validateCoverUrl, validateQrUrl} from '../helper/game-assets.mjs';
 
 async function fixture(t, runtime = true) {
@@ -30,6 +31,30 @@ test('only allows NetEase and known QQ image origins and exact QR login payloads
     'https://qpic.y.qq.com.attacker.com/music_cover/a']) assert.throws(() => validateCoverUrl(url), {code: 'COVER_URL_INVALID'});
   assert.equal(validateQrUrl('fixture', 'https://music.163.com/login?codekey=fixture'), 'https://music.163.com/login?codekey=fixture');
   for (const url of ['https://music.163.com/login?codekey=other', 'https://music.163.com/login?codekey=fixture&url=x', 'https://attacker.com/login?codekey=fixture']) assert.throws(() => validateQrUrl('fixture', url), {code: 'QR_URL_INVALID'});
+});
+
+test('NetEase verified CDN thumbnails preserve query parameters and QQ stays unchanged', async t => {
+  const f = await fixture(t, false);
+  const originalFetch = globalThis.fetch;
+  t.after(() => { globalThis.fetch = originalFetch; });
+  const png = await readFile(resolve('mod/images/music/ui.png'));
+  const requested = [];
+  globalThis.fetch = async url => {
+    requested.push(new URL(url));
+    return new Response(png, {headers: {'content-type':'image/png'}});
+  };
+  await f.assets.cover('14099273897', 'https://p4.music.126.net/cover.jpg?quality=90&param=200y200');
+  assert.equal(requested[0].searchParams.get('quality'), '90');
+  assert.deepEqual(requested[0].searchParams.getAll('param'), ['512y512']);
+  const original = 'https://p4.music.126.net/cover.jpg?quality=90&param=200y200';
+  const oldIndex = createHash('sha256').update(`v2-raw:cover:14099273897:${original}`).digest('hex') + '.json';
+  assert.ok((await readdir(join(f.stateDir, 'game-assets'))).includes(oldIndex), 'cache identity must use original URL');
+  await f.assets.cover('2', 'https://p1.music.126.net/cover.jpg');
+  assert.equal(requested[1].searchParams.get('param'), '512y512');
+  await f.assets.cover('3', 'https://p8.music.126.net/cover.jpg?quality=90');
+  assert.equal(requested[2].search, '?quality=90');
+  await f.assets.cover('qq:fixture', 'https://y.gtimg.cn/music/photo_new/cover.jpg?quality=90');
+  assert.equal(requested[3].search, '?quality=90');
 });
 
 test('QQ cover IDs compile and each redirect still requires an allowed image path', async t => {
