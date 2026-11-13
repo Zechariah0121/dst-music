@@ -5,3 +5,5 @@ artifacts/
 __pycache__/
 runtime/
 dist/
+/MANIFEST.json
+/VERSION
