@@ -14,7 +14,7 @@ using NAudio.Wave;
 using NAudio.Wave.SampleProviders;
 
 namespace DangoMusic {
-    // Disk-backed decoding prevents network reads from ever stalling waveOut or
+    // Disk-backed decoding prevents network reads from ever stalling output or
     // the control dispatcher. Each in-flight download has its own cancellation.
     public sealed class NativeAudio : IDisposable {
         sealed class Samples : ISampleProvider {
@@ -25,22 +25,31 @@ namespace DangoMusic {
             public WaveFormat WaveFormat{get{return source.WaveFormat;}}
             public int Read(float[] buffer,int offset,int count){lock(gate){int read=source.Read(buffer,offset,count);float n=Normalization;for(int i=offset;i<offset+read;i++)buffer[i]=Math.Max(-1,Math.Min(1,buffer[i]*n));DSP.Process(buffer,offset,read,WaveFormat.Channels,WaveFormat.SampleRate);float v=Volume;for(int i=offset;i<offset+read;i++)buffer[i]=Math.Max(-1,Math.Min(1,buffer[i]*v));return read;}}
         }
+        sealed class OutputFeed : IWaveProvider {
+            readonly IWaveProvider source;
+            public volatile bool EndOfStream;
+            public OutputFeed(ISampleProvider samples){source=new SampleToWaveProvider16(samples);}
+            public WaveFormat WaveFormat{get{return source.WaveFormat;}}
+            public int Read(byte[] data,int offset,int count){int read=source.Read(data,offset,count);if(read==0)EndOfStream=true;return read;}
+        }
         readonly Dispatcher dispatcher=Dispatcher.CurrentDispatcher;
         readonly object gate=new object();
         readonly CancellationTokenSource cancel=new CancellationTokenSource();
         readonly string cacheDir;
-        WaveStream reader;WaveOutEvent output;Samples samples;
+        WaveStream reader;IWavePlayer output;Samples samples;
         string file;volatile bool disposed,closing;
-        bool playWanted,hasStarted,seekPending;double pendingPosition;Task seekTask,openTask;
+        bool playWanted,hasStarted,seekPending,finished,deviceFailed;double pendingPosition,lastPosition;Task seekTask,openTask,playBarrier;
         TaskCompletionSource<bool> workerStopped;
         double volume=.7,originPosition;
         long originBytes;
         Dictionary<string,object> audio;
-        public event EventHandler MediaOpened,MediaEnded,MediaFailed;
+        public event EventHandler MediaOpened,MediaEnded,MediaFailed,PlaybackChanged;
         public bool MediaHttpFailed{get;private set;}
+        public bool IsPlaying{get{return playWanted&&!seekPending&&!finished&&!closing&&output!=null&&hasStarted&&output.PlaybackState==PlaybackState.Playing;}}
         static int cleanedCache;
         static readonly object cleanupGate=new object();
         static readonly List<Task> cleanupTasks=new List<Task>();
+        static Task outputRelease=Task.FromResult(0);
         public NativeAudio(string cacheDir){
             this.cacheDir=cacheDir;
             // The worker mutex excludes another owner. Remove orphan spools from
@@ -52,23 +61,49 @@ namespace DangoMusic {
             }
         }
         public double Duration{get{return pcm!=null?pcm.Duration:reader==null?0:reader.TotalTime.TotalSeconds;}}
+        long SourceBytes(IWavePlayer device){
+            var clock=(IWavePosition)device;
+            long bytes=clock.GetPosition();
+            // The device's clock is in its output format, not necessarily the
+            // source sample rate/channel layout. PcmBuffer maps 16-bit bytes.
+            return (long)(Math.Max(0,bytes)/(double)clock.OutputWaveFormat.AverageBytesPerSecond*samples.WaveFormat.SampleRate*samples.WaveFormat.Channels*2);
+        }
         public double Position{
-            get{if(seekPending)return pendingPosition;if(pcm!=null)return output==null?pcm.Position:pcm.PlayedPosition(Math.Max(0,output.GetPosition()-originBytes));if(output==null)return originPosition;return Math.Min(Duration,Math.Max(0,originPosition+(output.GetPosition()-originBytes)/(double)(reader.WaveFormat.SampleRate*reader.WaveFormat.Channels*2)));}
+            get{
+                if(seekPending)return pendingPosition;
+                if(finished)return Duration;
+                var current=output;
+                if(current==null||current.PlaybackState==PlaybackState.Stopped)return lastPosition;
+                try{
+                    long bytes=Math.Max(0,SourceBytes(current)-originBytes);
+                    double position=pcm!=null?pcm.PlayedPosition(bytes):originPosition+bytes/(double)(samples.WaveFormat.SampleRate*samples.WaveFormat.Channels*2);
+                    lastPosition=Math.Min(Duration,Math.Max(lastPosition,position));
+                }catch(Exception error){
+                    if(!deviceFailed){deviceFailed=true;Diagnostic("device-clock",error);Post(delegate{if(output==current)Raise(MediaFailed);});}
+                }
+                return lastPosition;
+            }
             set{
+                if(disposed||closing)return;
                 pendingPosition=Math.Max(0,Math.Min(Duration,value));
-                if(reader==null&&pcm==null){originPosition=value;return;}
+                finished=false;
+                if(reader==null&&pcm==null){originPosition=lastPosition=value;return;}
                 if(seekPending)return;
                 if(!hasStarted){ApplySeek();return;}
                 seekPending=true;
-                var previous=output;output=null;var stoppedSignal=workerStopped.Task;
-                // Stop/Play can overlap WaveOutEvent's old refill worker. Join its
-                // disposal off the STA, then build a fresh device for the latest seek.
-                seekTask=Task.Run(delegate{previous.Stop();stoppedSignal.Wait();previous.Dispose();});
+                var previous=output;output=null;hasStarted=false;
+                Raise(PlaybackChanged);
+                // Stop joins a render worker. Never wait for it on the control
+                // dispatcher; reuse this path for WASAPI pause to exclude its
+                // running silence clock from resumed lyric positions.
+                seekTask=ReleaseOutput(previous,workerStopped,true);
                 seekTask.ContinueWith(delegate(Task task){
                     if(task.IsFaulted){var observed=task.Exception;Post(delegate{seekPending=false;Raise(MediaFailed);});return;}
                     Post(delegate{
-                        ApplySeek();AttachOutput();seekPending=false;hasStarted=false;
+                        if(closing)return;
+                        ApplySeek();AttachOutput();seekPending=false;
                         if(playWanted)Play();
+                        Raise(PlaybackChanged);
                     });
                 });
             }
@@ -79,8 +114,8 @@ namespace DangoMusic {
                 else reader.CurrentTime=TimeSpan.FromSeconds(pendingPosition);
                 samples.DSP.Reset();
             }
-            originPosition=pendingPosition;
-            originBytes=output==null?0:output.GetPosition();
+            originPosition=lastPosition=pendingPosition;
+            originBytes=output==null?0:SourceBytes(output);
         }
         public double Volume{get{return volume;}set{volume=value;ConfigureAudio(audio);}}
         static double Num(Dictionary<string,object>d,string k,double fallback){object v;return d!=null&&d.TryGetValue(k,out v)?Convert.ToDouble(v):fallback;}
@@ -202,16 +237,31 @@ namespace DangoMusic {
             samples=new Samples(source,gate);ConfigureAudio(audio);samples.DSP.Reset();
             AttachOutput();Raise(MediaOpened);
         }
+        internal static IWavePlayer InitializeOutput(IWaveProvider feed,string mode,Func<IWavePlayer> sharedFactory,Func<IWavePlayer> waveFactory){
+            IWavePlayer current=null;
+            if(mode!="waveout"){
+                try{current=sharedFactory();current.Init(feed);return current;}
+                catch(Exception error){
+                    if(current!=null){try{current.Dispose();}catch{}}current=null;
+                    if(mode=="wasapi")throw;
+                    Diagnostic("wasapi-init-fallback",error);
+                }
+            }
+            current=waveFactory();
+            try{current.Init(feed);return current;}catch{current.Dispose();throw;}
+        }
         void AttachOutput(){
-            WaveOutEvent current;
-            // WaveOutEvent otherwise captures the STA synchronization context for
-            // PlaybackStopped. Its completion signal must survive dispatcher exit.
+            IWavePlayer current;
+            var feed=new OutputFeed(samples);
+            string mode=(Environment.GetEnvironmentVariable("DANGO_AUDIO_OUTPUT")??"auto").Trim().ToLowerInvariant();
+            // Completion signals must survive control-dispatcher shutdown.
             var context=SynchronizationContext.Current;
             try{
                 SynchronizationContext.SetSynchronizationContext(null);
-                current=new WaveOutEvent{DesiredLatency=60,NumberOfBuffers=3};
+                current=InitializeOutput(feed,mode,()=>new SharedAudioOutput(),()=>new WaveOutEvent{DesiredLatency=60,NumberOfBuffers=3});
             }finally{SynchronizationContext.SetSynchronizationContext(context);}
-            output=current;
+            output=current;hasStarted=false;deviceFailed=false;
+            Console.WriteLine("native_audio output="+(current is SharedAudioOutput?"wasapi-shared":"waveout"));
             var stoppedSignal=new TaskCompletionSource<bool>();workerStopped=stoppedSignal;
             current.PlaybackStopped+=delegate(object sender,StoppedEventArgs args){
                 stoppedSignal.TrySetResult(true);
@@ -220,10 +270,13 @@ namespace DangoMusic {
                 dispatcher.BeginInvoke(new Action(delegate{
                     if(disposed||suppress||output!=current)return;
                     if(args.Exception!=null){Diagnostic("device",args.Exception);Raise(MediaFailed);}
-                    else if(current.PlaybackState==PlaybackState.Stopped&&Position>=Duration-.15)Raise(MediaEnded);
+                    // WASAPI resets its clock at EOF (including zero-length
+                    // streams). The provider returning zero is the EOF proof;
+                    // manual stops were detached above and cannot end a song.
+                    else if(feed.EndOfStream&&!finished){finished=true;originPosition=lastPosition=Duration;Raise(MediaEnded);Raise(PlaybackChanged);}
                 }));
             };
-            current.Init(new SampleToWaveProvider16(samples));originBytes=current.GetPosition();
+            originBytes=SourceBytes(current);
         }
         void Post(Action action){
             if(disposed||dispatcher.HasShutdownStarted)return;
@@ -321,18 +374,50 @@ namespace DangoMusic {
             }
         }
         void Raise(EventHandler callback){if(callback!=null)callback(this,EventArgs.Empty);}
-        public void Play(){playWanted=true;if(output!=null&&!seekPending){hasStarted=true;output.Play();}}
-        public void Pause(){playWanted=false;if(output!=null)output.Pause();}
-        public void Stop(){playWanted=false;if(output!=null){closing=true;output.Stop();closing=false;}}
+        public void Play(){
+            if(disposed||closing||finished)return;
+            playWanted=true;
+            if(output!=null&&!seekPending&&(!hasStarted||output.PlaybackState==PlaybackState.Paused)){
+                Task pending;lock(cleanupGate)pending=outputRelease;
+                if(pending.IsFaulted){var observed=pending.Exception;Raise(MediaFailed);return;}
+                if(!pending.IsCompleted){
+                    if(playBarrier==null){playBarrier=pending;pending.ContinueWith(delegate(Task task){Post(delegate{playBarrier=null;if(task.IsFaulted){var observed=task.Exception;Raise(MediaFailed);}else if(playWanted)Play();});});}
+                    return;
+                }
+                output.Play();hasStarted=true;Raise(PlaybackChanged);
+            }
+        }
+        public void Pause(){
+            playWanted=false;
+            if(output is SharedAudioOutput&&hasStarted&&!seekPending&&!finished){Position=Position;}
+            else if(output!=null)output.Pause();
+            Raise(PlaybackChanged);
+        }
+        static Task ReleaseOutput(IWavePlayer previous,TaskCompletionSource<bool> stoppedSignal,bool started){
+            var release=Task.Run(delegate{
+                if(previous==null)return;
+                try{previous.Stop();if(started&&stoppedSignal!=null)stoppedSignal.Task.Wait();}
+                finally{previous.Dispose();}
+            });
+            // A replacement can decode while the old device is stopping, but
+            // must not start emitting until all detached outputs are silent.
+            lock(cleanupGate)outputRelease=outputRelease.IsCompleted?release:Task.WhenAll(outputRelease,release);
+            return release;
+        }
+        public void Stop(){
+            if(closing)return;
+            playWanted=false;originPosition=lastPosition=Position;closing=true;
+            var previous=output;output=null;
+            if(previous!=null)seekTask=ReleaseOutput(previous,workerStopped,hasStarted);
+            Raise(PlaybackChanged);
+        }
         public void Close(){Dispose();}
         static void TryDelete(string path){try{if(path!=null)File.Delete(path);}catch{}}
         public void Dispose(){
-            if(disposed)return;disposed=true;cancel.Cancel();
-            var previous=output;output=null;var pending=seekTask;
-            var stoppedSignal=workerStopped;bool started=hasStarted;var opening=openTask;
+            if(disposed)return;Stop();disposed=true;cancel.Cancel();
+            var pending=seekTask;var opening=openTask;
             var cleanup=Task.Run(delegate{
                 if(pending!=null){try{pending.Wait();}catch{}}
-                if(previous!=null){previous.Stop();if(started&&stoppedSignal!=null)stoppedSignal.Task.Wait();previous.Dispose();}
                 if(opening!=null){try{opening.Wait();}catch{}}
                 if(reader!=null)reader.Dispose();TryDelete(file);
             });

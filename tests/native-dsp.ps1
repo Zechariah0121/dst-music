@@ -10,7 +10,7 @@ foreach ($name in @('NAudio.Core.dll','NAudio.WinMM.dll','NAudio.Wasapi.dll')) {
     [Reflection.Assembly]::LoadFrom($path) | Out-Null
     $refs += $path
 }
-Add-Type -Path @((Join-Path $root 'helper/NativeDSP.cs'), (Join-Path $root 'helper/EnvironmentDSP.cs'), (Join-Path $PSScriptRoot 'native-dsp-fixtures.cs')) -ReferencedAssemblies $refs
+Add-Type -Path @((Join-Path $root 'helper/NativeDSP.cs'), (Join-Path $root 'helper/SharedAudioOutput.cs'), (Join-Path $root 'helper/EnvironmentDSP.cs'), (Join-Path $PSScriptRoot 'native-dsp-fixtures.cs')) -ReferencedAssemblies $refs
 function Check($condition, $message) { if (!$condition) { throw $message } }
 function Energy([single[]]$values, [int]$start=0) {
     $sum=0.0; for($i=$start;$i -lt $values.Length;$i++){ $sum += $values[$i]*$values[$i] }

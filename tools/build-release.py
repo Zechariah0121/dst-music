@@ -10,7 +10,7 @@ from pathlib import Path
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.6.0-beta.3'
+VERSION = '0.6.0-beta.6'
 PACKAGE = 'DST-Music-' + VERSION + '-Windows-x64'
 ROOT_FILES = [
     'Install-Mod.ps1', 'Start-Player.ps1', 'Stop-Player.ps1',

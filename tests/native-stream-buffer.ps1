@@ -46,6 +46,6 @@ public static class NativeBufferProbe {
 $fixture=Join-Path ([IO.Path]::GetTempPath()) (([Guid]::NewGuid().ToString('N'))+'.cs')
 try {
     [IO.File]::WriteAllText($fixture,$probe)
-    Add-Type -Path @((Join-Path $root 'helper/NativeDSP.cs'),(Join-Path $root 'helper/EnvironmentDSP.cs'),$fixture) -ReferencedAssemblies $refs
+    Add-Type -Path @((Join-Path $root 'helper/NativeDSP.cs'),(Join-Path $root 'helper/SharedAudioOutput.cs'),(Join-Path $root 'helper/EnvironmentDSP.cs'),$fixture) -ReferencedAssemblies $refs
     [NativeBufferProbe]::Run()
 } finally {Remove-Item -LiteralPath $fixture -ErrorAction SilentlyContinue}

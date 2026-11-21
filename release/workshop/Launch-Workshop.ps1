@@ -4,6 +4,219 @@ $ErrorActionPreference = 'Stop'
 $workshopId = '3836261433'
 $runKey = 'HKCU:/Software/Microsoft/Windows/CurrentVersion/Run'
 $runName = 'ZccDSTMusic'
+$ownershipId = 'zcc-dst-music-workshop-launcher-v1'
+$stableNames = @('Launch-Workshop.ps1', 'Runtime-Paths.ps1', '自启动设置.cmd', '停止配套播放器.cmd')
+
+function Resolve-WorkshopInstallPath([string]$Path, [string]$SourceModPath) {
+    $pathText = $Path.Trim()
+    if ($pathText -notmatch '^(?:[a-z]:[\\/]|\\\\[^.\\/?][^\\/]*\\[^\\/]+(?:[\\/]|$))') {
+        throw '请输入完整的 Windows 文件夹路径。'
+    }
+    $directory = Get-MusicUniquePaths $pathText
+    $root = [IO.Path]::GetPathRoot($directory)
+    foreach ($part in $directory.Substring($root.Length).TrimStart('\').Split('\')) {
+        if ($part -match '[:\x00-\x1f<>|?*"]|[. ]$|^(?:CON|PRN|AUX|NUL|CONIN\$|CONOUT\$|COM[0-9¹²³]|LPT[0-9¹²³])(?:\.|$)') {
+            throw '文件夹路径包含 Windows 不支持的名称。'
+        }
+    }
+    if ($SourceModPath -and ($directory -ieq $SourceModPath -or $directory.StartsWith($SourceModPath + '\', [StringComparison]::OrdinalIgnoreCase))) {
+        throw '请选择 Steam 模组文件夹以外的目录，以便更新模组时保留播放器和数据。'
+    }
+    Assert-MusicSafePath $directory
+    if (Test-Path -LiteralPath $directory -PathType Leaf) { throw '此路径指向文件，请选择文件夹。' }
+    return $directory
+}
+
+function Test-WorkshopInstallOwnership([string]$Directory) {
+    $marker = Join-Path $Directory 'bootstrap.id'
+    Assert-MusicSafePath $marker
+    return (Test-Path -LiteralPath $marker -PathType Leaf) -and
+        ([IO.FileInfo]::new($marker).Length -le 128) -and ([IO.File]::ReadAllText($marker) -ceq $ownershipId)
+}
+
+function Assert-WorkshopInstallAvailable([string]$Directory) {
+    if (-not [IO.Directory]::Exists([IO.Path]::GetPathRoot($Directory))) { throw '所选磁盘或网络位置不可用，请接入磁盘或重新选择目录。' }
+    if (Test-WorkshopInstallOwnership $Directory) { return }
+    foreach ($name in ($stableNames + @('bootstrap.id', 'versions', '.state', 'current.json', 'launcher.lock'))) {
+        $path = Join-Path $Directory $name
+        Assert-MusicSafePath $path
+        if (Test-Path -LiteralPath $path) { throw '此目录已包含同名文件或目录，请选择其他文件夹。' }
+    }
+}
+
+function Show-WorkshopInstallDirectory([string]$DefaultDirectory, [string]$SourceModPath, [string]$PreviousDirectory, [string]$RecoveryReason) {
+    Add-Type -AssemblyName System.Windows.Forms
+    [Windows.Forms.Application]::EnableVisualStyles()
+    $form = [Windows.Forms.Form]::new()
+    try {
+        $form.Text = '云间音乐 · 选择播放器安装目录'
+        $form.ClientSize = [Drawing.Size]::new(660, 256)
+        $form.FormBorderStyle = 'FixedDialog'
+        $form.StartPosition = 'CenterScreen'
+        $form.MaximizeBox = $false
+        $form.MinimizeBox = $false
+        $hint = [Windows.Forms.Label]::new()
+        $hint.Text = '选择配套播放器的解压位置。程序、账号设置和缓存都会保存在此目录。'
+        $hint.SetBounds(20, 20, 620, 22)
+        $location = [Windows.Forms.TextBox]::new()
+        $location.Text = $DefaultDirectory
+        if ($PreviousDirectory) { $location.Text = $PreviousDirectory }
+        $location.SetBounds(22, 52, 518, 24)
+        $browse = [Windows.Forms.Button]::new()
+        $browse.Text = '浏览…'
+        $browse.SetBounds(552, 49, 86, 28)
+        $browse.Add_Click({
+            $picker = [Windows.Forms.FolderBrowserDialog]::new()
+            try {
+                $picker.Description = '选择配套播放器的解压位置'
+                $picker.ShowNewFolderButton = $true
+                if ([IO.Directory]::Exists($location.Text)) { $picker.SelectedPath = $location.Text }
+                if ($picker.ShowDialog($form) -eq 'OK') { $location.Text = $picker.SelectedPath }
+            } finally { $picker.Dispose() }
+        }.GetNewClosure())
+        $restore = [Windows.Forms.Button]::new()
+        $restore.Text = '使用默认目录'
+        $restore.SetBounds(22, 199, 116, 32)
+        $restore.Add_Click({ $location.Text = $DefaultDirectory }.GetNewClosure())
+        $notice = [Windows.Forms.Label]::new()
+        $notice.Text = '以后启动和更新时会继续使用所选目录。'
+        if ($RecoveryReason) {
+            $notice.Text = $RecoveryReason + "`r`n请恢复原目录或接入磁盘，也可以重新选择安装位置。原账号和缓存若仍保留，请选择其原目录；选择空目录会创建新数据，不会自动迁移旧数据。"
+        }
+        $notice.SetBounds(20, 90, 620, 96)
+        $install = [Windows.Forms.Button]::new()
+        $install.Text = '解压并启动'
+        $install.DialogResult = 'OK'
+        $install.SetBounds(438, 199, 106, 32)
+        $cancel = [Windows.Forms.Button]::new()
+        $cancel.Text = '取消'
+        $cancel.DialogResult = 'Cancel'
+        $cancel.SetBounds(552, 199, 86, 32)
+        $form.Controls.AddRange(@($hint, $location, $browse, $restore, $notice, $install, $cancel))
+        $form.AcceptButton = $install
+        $form.CancelButton = $cancel
+        $form.ActiveControl = $location
+        while ($form.ShowDialog() -eq 'OK') {
+            try {
+                $directory = Resolve-WorkshopInstallPath $location.Text $SourceModPath
+                Assert-WorkshopInstallAvailable $directory
+                Assert-WorkshopInstallWritable $directory
+                return $directory
+            } catch {
+                $notice.Text = $_.Exception.Message
+                $notice.ForeColor = [Drawing.Color]::Firebrick
+                $form.DialogResult = 'None'
+            }
+        }
+    } finally { $form.Dispose() }
+}
+
+function Assert-WorkshopInstallWritable([string]$Directory) {
+    # 只在确认磁盘可用后创建目录，避免离线磁盘被误当成新安装位置。
+    $root = [IO.Path]::GetPathRoot($Directory)
+    if (-not [IO.Directory]::Exists($root)) { throw '所选磁盘或网络位置不可用，请接入磁盘或重新选择目录。' }
+    Assert-MusicSafePath $Directory
+    $probe = Join-Path $Directory ('.write-check-' + [guid]::NewGuid().ToString('N') + '.tmp')
+    Assert-MusicSafePath $probe
+    try {
+        [IO.Directory]::CreateDirectory($Directory) | Out-Null
+        $file = [IO.File]::Open($probe, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+        $file.Dispose()
+    } catch {
+        throw ('播放器目录无法写入，请检查权限或重新选择目录：' + $Directory)
+    } finally {
+        if ([IO.File]::Exists($probe)) { [IO.File]::Delete($probe) }
+    }
+}
+
+function Write-NewWorkshopText([string]$Path, [string]$Text) {
+    $temporary = $Path + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
+    $file = [IO.File]::Open($temporary, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None)
+    try {
+        try {
+            $bytes = [Text.Encoding]::UTF8.GetBytes($Text)
+            $file.Write($bytes, 0, $bytes.Length)
+        } finally { $file.Dispose() }
+        [IO.File]::Move($temporary, $Path)
+    } finally {
+        if (Test-Path -LiteralPath $temporary) { [IO.File]::Delete($temporary) }
+    }
+}
+
+function Get-WorkshopInstallDirectory([string]$DefaultDirectory, [string]$SourceModPath, [switch]$ChooseDirectory) {
+    # 工坊各副本共用选择锁，不在默认目录留下首次安装锁文件。
+    $hash = [Security.Cryptography.SHA256]::Create()
+    try { $key = [BitConverter]::ToString($hash.ComputeHash([Text.Encoding]::UTF8.GetBytes($DefaultDirectory.ToUpperInvariant()))).Replace('-', '') }
+    finally { $hash.Dispose() }
+    $mutex = [Threading.Mutex]::new($false, ('Global\ZccDSTMusic-' + $key))
+    $acquired = $false
+    try {
+        try { $acquired = $mutex.WaitOne(0) }
+        catch [Threading.AbandonedMutexException] { $acquired = $true }
+        if (-not $acquired) { throw '播放器启动器正在选择安装目录，请在当前窗口完成后再试。' }
+
+        $locationPath = Join-Path $DefaultDirectory 'install-location.json'
+        Assert-MusicSafePath $locationPath
+        $previousDirectory = $null
+        $pendingPreviousDirectory = $null
+        $recoveryReason = $null
+        if (Test-Path -LiteralPath $locationPath) {
+            try {
+                if ([IO.FileInfo]::new($locationPath).Length -gt 16384) { throw 'Invalid record size' }
+                $record = Get-Content -LiteralPath $locationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+                if ($record -isnot [pscustomobject] -or $record.schema -isnot [int] -or $record.schema -ne 1 -or $record.path -isnot [string]) {
+                    throw 'Invalid record structure'
+                }
+                $directory = Resolve-WorkshopInstallPath $record.path $SourceModPath
+                if ($record.PSObject.Properties['previousPath']) {
+                    if ($record.previousPath -isnot [string]) { throw 'Invalid previous path' }
+                    $pendingPreviousDirectory = Resolve-WorkshopInstallPath $record.previousPath $SourceModPath
+                }
+            } catch {
+                throw ('无法读取播放器安装位置记录。请检查此文件：' + $locationPath)
+            }
+            if ((Test-Path -LiteralPath $directory -PathType Container) -and (Test-WorkshopInstallOwnership $directory)) {
+                $script:workshopPreviousInstallDirectory = $pendingPreviousDirectory
+                if (-not $ChooseDirectory) { return $directory }
+                try { Assert-WorkshopInstallWritable $directory; return $directory }
+                catch { $recoveryReason = $_.Exception.Message }
+            } else {
+                $recoveryReason = '上次选择的播放器目录已不可用。'
+            }
+            if (-not $ChooseDirectory) { throw ($recoveryReason + '请从工坊运行「一键启动播放器」重新选择，或恢复原目录、重新接入磁盘：' + $directory) }
+            $previousDirectory = $directory
+        }
+
+        if (-not $previousDirectory -and (Test-WorkshopInstallOwnership $DefaultDirectory)) {
+            if (-not $ChooseDirectory) { return $DefaultDirectory }
+            try { Assert-WorkshopInstallWritable $DefaultDirectory; return $DefaultDirectory }
+            catch { $previousDirectory = $DefaultDirectory; $recoveryReason = $_.Exception.Message }
+        }
+        if (-not $ChooseDirectory) { throw '请先双击工坊目录里的「一键启动播放器」。' }
+        $directory = Show-WorkshopInstallDirectory $DefaultDirectory $SourceModPath $previousDirectory $recoveryReason
+        if (-not $directory) { return }
+        $directory = Resolve-WorkshopInstallPath $directory $SourceModPath
+        Assert-WorkshopInstallAvailable $directory
+        Assert-MusicSafePath (Join-Path $directory '.state') -Tree
+        Assert-WorkshopInstallWritable $directory
+        $marker = Join-Path $directory 'bootstrap.id'
+        Assert-MusicSafePath $marker
+        if (-not (Test-WorkshopInstallOwnership $directory)) { Write-NewWorkshopText $marker $ownershipId }
+        [IO.Directory]::CreateDirectory($DefaultDirectory) | Out-Null
+        Assert-MusicSafePath $locationPath
+        # 只有用户确认且目标可写后才替换旧指针；取消和验证失败保留原记录。
+        $nextRecord = @{schema=1; path=$directory}
+        $previousStartupDirectory = $previousDirectory
+        if ($pendingPreviousDirectory) { $previousStartupDirectory = $pendingPreviousDirectory }
+        if ($previousStartupDirectory -and $previousStartupDirectory -ine $directory) { $nextRecord.previousPath = $previousStartupDirectory }
+        Write-MusicText $locationPath ($nextRecord | ConvertTo-Json -Compress)
+        $script:workshopPreviousInstallDirectory = $nextRecord.previousPath
+        return $directory
+    } finally {
+        if ($acquired) { $mutex.ReleaseMutex() }
+        $mutex.Dispose()
+    }
+}
 
 function Get-CompanionPackage($Manifest) {
     if ($Manifest.schema -ne 1 -or
@@ -105,9 +318,38 @@ function Install-Companion($Manifest, [string]$ArchivePath) {
     return $destination
 }
 
-function Get-AutoStartCommand {
+function Get-AutoStartCommand([string]$Directory = $installDir) {
     $powershell = Join-Path $env:WINDIR 'System32/WindowsPowerShell/v1.0/powershell.exe'
-    return ('"' + $powershell + '" -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + (Join-Path $installDir 'Launch-Workshop.ps1') + '" -AutoStart')
+    return ('"' + $powershell + '" -NoProfile -NonInteractive -WindowStyle Hidden -ExecutionPolicy Bypass -File "' + [IO.Path]::Combine($Directory, 'Launch-Workshop.ps1') + '" -AutoStart')
+}
+
+function Update-WorkshopRecoveredAutoStart([string]$PreviousDirectory) {
+    if (-not $PreviousDirectory -or $PreviousDirectory -ieq $installDir) { return }
+    $existing = Get-AutoStartEntry
+    # 只跟随确切属于原安装位置的已启用项，不接管其他程序或异常类型。
+    if (-not $existing -or $existing.kind -ne [Microsoft.Win32.RegistryValueKind]::String -or
+        $existing.value -cne (Get-AutoStartCommand $PreviousDirectory)) { return }
+    $command = Get-AutoStartCommand
+    if ($command.Length -gt 260) { throw '新目录过长，无法更新随 Windows 启动的位置。请重新选择较短目录后设置自启动。' }
+    Assert-MusicSafePath (Join-Path $installDir 'Launch-Workshop.ps1')
+    Assert-MusicSafePath $currentPath
+    if (-not (Test-Path -LiteralPath (Join-Path $installDir 'Launch-Workshop.ps1') -PathType Leaf) -or
+        -not (Get-InstalledCompanion (Read-CompanionManifest $currentPath) -CheckFiles)) {
+        throw '新目录尚未完成安装，保留原自启动项。'
+    }
+    Set-ItemProperty -LiteralPath $runKey -Name $runName -Value $command
+}
+
+function Complete-WorkshopInstallRecovery([string]$DefaultDirectory) {
+    if (-not $script:workshopPreviousInstallDirectory) { return }
+    $locationPath = Join-Path $DefaultDirectory 'install-location.json'
+    Assert-MusicSafePath $locationPath
+    $record = Get-Content -LiteralPath $locationPath -Raw -Encoding UTF8 | ConvertFrom-Json
+    if ($record.path -ine $installDir) { throw '安装位置记录已改变，请重新运行工坊启动器。' }
+    # 新位置启动成功且自启动已处理后才移除待恢复字段，失败重试仍记得原启动项。
+    $record.PSObject.Properties.Remove('previousPath')
+    Write-MusicText $locationPath ($record | ConvertTo-Json -Compress)
+    $script:workshopPreviousInstallDirectory = $null
 }
 
 function Get-AutoStartEntry {
@@ -188,22 +430,14 @@ function Test-CompanionEnvironment([string]$Directory) {
 }
 
 try {
+    $script:workshopPreviousInstallDirectory = $null
     $localData = [Environment]::GetFolderPath([Environment+SpecialFolder]::LocalApplicationData)
     if (-not $localData) { throw 'Windows 无法找到本机应用数据目录。' }
-    $installDir = [IO.Path]::GetFullPath((Join-Path $localData ('Zcc/DST-Music/Workshop/' + $workshopId)))
-    $versionsDir = Join-Path $installDir 'versions'
-    $stateDir = Join-Path $installDir '.state'
-    $currentPath = Join-Path $installDir 'current.json'
-    $ownershipPath = Join-Path $installDir 'bootstrap.id'
+    $defaultDir = [IO.Path]::GetFullPath((Join-Path $localData ('Zcc/DST-Music/Workshop/' + $workshopId)))
     . (Join-Path $PSScriptRoot 'Runtime-Paths.ps1')
-    Assert-MusicSafePath $installDir
-    if ($Settings) { Show-AutoStartSettings; return }
-
-    if ($AutoStart -or $Stop) {
-        if ($AutoStart -and $PSScriptRoot -ine $installDir) { throw '请从已安装的播放器目录运行此选项。' }
-        if (-not (Test-Path -LiteralPath $installDir -PathType Container)) { throw '请先双击工坊目录里的「一键启动播放器」。' }
-        Assert-MusicSafePath $versionsDir
-    } else {
+    $launchFromWorkshop = -not ($AutoStart -or $Stop -or $Settings)
+    $workshopPath = $null
+    if ($launchFromWorkshop) {
         $workshopPath = Split-Path $PSScriptRoot -Parent
         $modName = Split-Path $workshopPath -Leaf
         if ($modName -cnotin @($workshopId, ('workshop-' + $workshopId))) {
@@ -212,15 +446,22 @@ try {
         $connection = Find-MusicWorkshopConnection -ModPath $workshopPath
         $manifest = Read-CompanionManifest (Join-Path $PSScriptRoot 'companion.json')
         $null = Get-CompanionPackage $manifest
-        Assert-MusicSafePath $versionsDir
-        [IO.Directory]::CreateDirectory($versionsDir) | Out-Null
     }
+    $installDir = Get-WorkshopInstallDirectory $defaultDir $workshopPath -ChooseDirectory:$launchFromWorkshop
+    if (-not $installDir) { Write-Output '已取消播放器安装。'; return }
+    if ($AutoStart -and $PSScriptRoot -ine $installDir) { throw '请从已安装的播放器目录运行此选项。' }
+    $versionsDir = Join-Path $installDir 'versions'
+    $stateDir = Join-Path $installDir '.state'
+    $currentPath = Join-Path $installDir 'current.json'
+    Assert-MusicSafePath $versionsDir
+    Assert-MusicSafePath $stateDir
 
     $lockPath = Join-Path $installDir 'launcher.lock'
     Assert-MusicSafePath $lockPath
     try { $lock = [IO.File]::Open($lockPath, [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None) }
     catch { throw '播放器启动器正在运行，请等当前操作完成后再试。' }
     try {
+        if ($Settings) { Show-AutoStartSettings; return }
         $previous = $null
         Assert-MusicSafePath $currentPath
         if (Test-Path -LiteralPath $currentPath -PathType Leaf) {
@@ -242,29 +483,18 @@ try {
             return
         }
 
-        $directory = Get-InstalledCompanion $manifest -CheckFiles
-        if (-not $directory) {
-            $directory = Install-Companion $manifest (Join-Path $PSScriptRoot ($manifest.package + '.zip'))
-        }
         $stableLauncher = Join-Path $installDir 'Launch-Workshop.ps1'
         $stablePaths = Join-Path $installDir 'Runtime-Paths.ps1'
         $stableSettings = Join-Path $installDir '自启动设置.cmd'
         $stableStop = Join-Path $installDir '停止配套播放器.cmd'
-        $ownershipId = 'zcc-dst-music-workshop-launcher-v1'
-        Assert-MusicSafePath $ownershipPath
-        $hasOwnership = (Test-Path -LiteralPath $ownershipPath -PathType Leaf) -and
-            ([IO.File]::ReadAllText($ownershipPath) -ceq $ownershipId)
-        if (-not $hasOwnership -and (Test-Path -LiteralPath $ownershipPath)) {
-            throw '播放器安装目录已有其他文件。请检查本机播放器目录。'
-        }
-        foreach ($path in @($stableLauncher, $stablePaths, $stableSettings, $stableStop)) {
-            Assert-MusicSafePath $path
-            if ((Test-Path -LiteralPath $path) -and -not $hasOwnership) {
-                throw '播放器安装目录已有其他文件。请检查本机播放器目录。'
-            }
+        foreach ($path in @($stableLauncher, $stablePaths, $stableSettings, $stableStop)) { Assert-MusicSafePath $path }
+        Assert-MusicSafePath $stateDir -Tree
+        [IO.Directory]::CreateDirectory($versionsDir) | Out-Null
+        $directory = Get-InstalledCompanion $manifest -CheckFiles
+        if (-not $directory) {
+            $directory = Install-Companion $manifest (Join-Path $PSScriptRoot ($manifest.package + '.zip'))
         }
 
-        Assert-MusicSafePath $stateDir -Tree
         $recordPath = Join-Path $stateDir 'process.json'
         $owned = $false
         if ($previous -and (Test-Path -LiteralPath $recordPath -PathType Leaf)) {
@@ -282,7 +512,6 @@ try {
             Test-CompanionEnvironment $directory
         }
 
-        if (-not $hasOwnership) { Write-MusicText $ownershipPath $ownershipId }
         foreach ($copy in @(
             @{Source=$PSCommandPath; Destination=$stableLauncher},
             @{Source=(Join-Path $PSScriptRoot 'Runtime-Paths.ps1'); Destination=$stablePaths},
@@ -344,12 +573,17 @@ try {
             } catch { $reason += ' 自动恢复失败。请检查播放器目录，或重新运行上次使用的版本。' }
             throw $reason
         }
-        Write-Output '播放器已就绪。回到游戏，点 ESC → 设置 → 连接播放器。'
+        try {
+            Update-WorkshopRecoveredAutoStart $script:workshopPreviousInstallDirectory
+            Complete-WorkshopInstallRecovery $defaultDir
+        }
+        catch { Write-Output ('播放器已启动，但安装位置或自启动恢复尚未完成：' + $_.Exception.Message) }
+        Write-Output '播放器已就绪。回到游戏，点 ESC → 音乐播放器 → 连接播放器。'
         Write-Output ('播放器安装目录：' + $installDir)
     } finally { $lock.Dispose() }
 } catch {
     $message = $_.Exception.Message
-    if ($message -match 'junction|符号链接') { $message = '模组或本机播放器路径包含目录链接。请使用实际 Steam 库路径和普通 Windows 用户数据目录。' }
+    if ($message -match 'junction|符号链接') { $message = '模组或本机播放器路径包含目录链接。请使用实际 Steam 库路径和普通文件夹。' }
     if (-not $AutoStart) { [Console]::Error.WriteLine($message) }
     exit 1
 }

@@ -1,4 +1,4 @@
-# 本机音乐桥协议 · 0.6.0-beta.3 测试候选
+# 本机音乐桥协议 · 0.6.0-beta.5 测试候选
 
 ## 0.6 双音源扩展（本地测试候选）
 
@@ -71,9 +71,11 @@ Track = {id,name,artists:string,duration:秒,cover?,trial?}。必须显示试听
 - 原生错误报告不直接回传进程异常字符串。当前歌曲与revision对应的媒体下载错误可保留受控中文原因，其余使用本机音频提示；换歌不会沿用旧下载原因。
 - GET /health → {ok:true,name:"dst-music-bridge"}，无秘密。
 
-原生进程的MP3路径采用异步下载与逐帧解码 → PCM临时磁盘+固定内存读前缓存 → NAudio PCM/DSP → waveOut输出。音频回调不等待网络或磁盘读取；欠载填零且报告进度只计算真正播出的PCM。未缓冲位置的seek等待数据；非MP3仍整文件下载后Media Foundation解码。压缩/PCM缓存各256MiB，内存读前16×64KiB；换曲取消旧下载并清理缓存。无浏览器依赖；父服务退出后音频进程退出。音量/暂停不反复seek；显式seek、选曲和租约恢复才增加seekRevision。
+原生进程的MP3路径采用异步下载与逐帧解码 → PCM临时磁盘+固定内存读前缓存 → NAudio PCM/DSP → WASAPI共享输出，初始化失败时回退WaveOut。两者请求总缓冲60ms，实际输出延迟取决于设备。音频回调不等待网络或磁盘读取；欠载填零且报告进度只计算真正播出的PCM。未缓冲位置的seek等待数据；非MP3仍整文件下载后Media Foundation解码。压缩/PCM缓存各256MiB，内存读前16×64KiB；换曲取消旧下载并清理缓存。无浏览器依赖；父服务退出后音频进程退出。WASAPI暂停在本机记录已播位置、异步停止并重建设备，避免暂停静音被计入歌词时间；不会改变协议seekRevision。WaveOut保留其原生暂停方式。显式seek、选曲和租约恢复才增加seekRevision。
 
-暂停/恢复/音量/设置直接处理，设置磁盘写入另行串行化，不排在慢选歌后；选歌仍按顺序推进队列，加载期间收到的暂停会保留到新曲。地区DSP位于EnvironmentDSP.cs，生产编译须同时包含NativePlayer.cs、NativeDSP.cs和EnvironmentDSP.cs。
+暂停/恢复/音量/设置直接处理，设置磁盘写入另行串行化，不排在慢选歌后；选歌仍按顺序推进队列，加载期间收到的暂停会保留到新曲。WASAPI由专有STA创建和释放，控制线程仅读缓存时钟；切歌在旧设备停止后才启动新设备，重建期间报告playing=false。自然EOF依据provider返回0判定，保留曲尾进度，不依赖已重置的设备时钟。地区DSP位于EnvironmentDSP.cs，生产编译包含NativePlayer.cs、NativeDSP.cs、SharedAudioOutput.cs、EnvironmentDSP.cs与GameProcessMonitor.cs。
+
+诊断时可仅给播放器进程设置DANGO_AUDIO_OUTPUT=wasapi（强制共享、失败不回退）、waveout（兼容输出）或auto（默认优先共享）；不写入系统环境变量。选用的输出在native.log记录为native_audio output=wasapi-shared或waveout，故障日志不包含设备名、媒体地址或凭据。仅初始化失败自动回退；运行中的设备断开仍报告播放失败，不会无限重试。
 
 ## 生命周期与安装
 

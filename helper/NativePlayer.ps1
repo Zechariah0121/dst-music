@@ -24,7 +24,7 @@ try {
         [System.Web.Script.Serialization.JavaScriptSerializer].Assembly.Location,
         [Reflection.Assembly]::Load('netstandard, Version=2.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51').Location
     ) + $audioRefs
-    Add-Type -Path @((Join-Path $PSScriptRoot 'NativePlayer.cs'),(Join-Path $PSScriptRoot 'NativeDSP.cs'),(Join-Path $PSScriptRoot 'EnvironmentDSP.cs'),(Join-Path $PSScriptRoot 'GameProcessMonitor.cs')) -ReferencedAssemblies $references
+    Add-Type -Path @((Join-Path $PSScriptRoot 'NativePlayer.cs'),(Join-Path $PSScriptRoot 'NativeDSP.cs'),(Join-Path $PSScriptRoot 'SharedAudioOutput.cs'),(Join-Path $PSScriptRoot 'EnvironmentDSP.cs'),(Join-Path $PSScriptRoot 'GameProcessMonitor.cs')) -ReferencedAssemblies $references
     $result = [DangoMusic.NativePlayer]::Run([IO.Path]::GetFullPath($StateDir), $ParentProcessId, $MaxUnavailableSeconds)
     exit $result
 } catch {

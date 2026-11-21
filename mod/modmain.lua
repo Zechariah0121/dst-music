@@ -17,14 +17,61 @@ local keyname = GetModConfigData("toggle_key")
 if keyname == nil then keyname = "KEY_F8" end
 local key = keyname and G[keyname] or nil
 
--- mods.lua modimport discards return values. Load this local generated table
--- explicitly instead. Do not log its contents or put credentials in modinfo.
+-- modimport 不返回加载值；直接读取本机生成的连接表，避免记录其中的凭据。
 local function LoadConnection()
     local ok, chunk = G.pcall(G.kleiloadlua, MODROOT .. "scripts/dangomusic_connection.lua")
     if not ok or G.type(chunk) ~= "function" then return nil end
     local loaded, value = G.pcall(chunk)
     return loaded and G.type(value) == "table" and value or nil
 end
+
+-- 主菜单同样提供完整播放器，暂停、登录和关闭面板不再依赖进入世界。
+AddClassPostConstruct("screens/redux/multiplayermainscreen", function(screen)
+    if not screen.menu or screen.menu._dangomusic_button then return end
+    local TEMPLATES = G.require("widgets/redux/templates")
+    local panel, controller, button
+    local dead = false
+    local function OpenMusic()
+        if dead or G.TheFrontEnd:IsControlsDisabled() then return end
+        if panel then
+            if G.TheFrontEnd:GetActiveScreen() == panel then panel:Close() end
+            return
+        end
+        if G.TheFrontEnd:GetActiveScreen() ~= screen then return end
+        controller = Controller(screen.inst, LoadConnection(), MODROOT, LoadConnection)
+        panel = MusicScreen(controller, function()
+            panel = nil
+            if controller then controller:Close(); controller = nil end
+        end)
+        screen.last_focus_widget = button
+        G.TheFrontEnd:PushScreen(panel)
+    end
+    button = TEMPLATES.MenuButton("音乐播放器", OpenMusic, "打开播放器、暂停音乐或连接后台，无需进入世界。", screen.tooltip)
+    screen.menu:AddCustomItem(button)
+    screen.menu._dangomusic_button = button
+    local menu = screen.menu
+    local function PlaceMainEntry()
+        if dead or screen.menu ~= menu or not menu.inst:IsValid() then return end
+        local position = button:GetPosition()
+        local top = 0
+        -- 有些菜单模组只添加子控件、不登记 items；同时避让这类已有入口。
+        for _, child in G.pairs(menu.children or {}) do
+            if child ~= button and child.GetPosition and child:IsVisible() then
+                local point = child:GetPosition()
+                if G.math.abs(point.x-position.x) < 100 then top = G.math.max(top, point.y) end
+            end
+        end
+        button:SetPosition(position.x, top+G.math.max(38, menu.offset or 38), position.z)
+    end
+    PlaceMainEntry()
+    -- 等其他构造钩子完成后再核对一次，不在每帧重排原有菜单。
+    screen.inst:DoStaticTaskInTime(0, PlaceMainEntry)
+    screen.inst:ListenForEvent("onremove", function()
+        dead = true
+        if panel then panel:Close(); panel = nil end
+        if controller then controller:Close(); controller = nil end
+    end)
+end)
 
 AddClassPostConstruct("widgets/controls", function(controls)
     local panel

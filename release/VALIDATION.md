@@ -1,5 +1,22 @@
 # 验证范围
 
+## 0.6.0-beta.6 本地候选记录（2026-11-21）
+
+当前在线工坊仍为 0.6.0-beta.5，本节记录未发布 beta.6 的自动化、初版产物及本机主菜单检查。更完整的工坊候选历史在 `release/workshop/VALIDATION.md`；下文既有音频及便携化检查均为历史记录，不作为本轮重测。
+
+- 改动范围：安装目录失效后的交互重选／恢复和取消保留；二维码原 180 秒内的成功幂等轮询、同 key 保存重试及 Lua 最多 3 次自动重试；主菜单原生音乐入口与 UI 静态计时；后台每 5 秒恢复缺失连接文件、游戏离线每 3 秒重读配置。后台关闭时仍须启动器启动。
+- 主代理报告并复核：Node 80/80 项通过，覆盖 backend、login-persistence、qq-login、music-sources、qqmusic、game-request-integration、game-connection、runtime-assets。日志见 `.state/feedback-20261121/backend-tests.log`。
+- 4 套 Lua 离线测试通过。它们验证逻辑和替身环境，不等于真实游戏主菜单布局、输入与播放交互验收。
+- Windows PowerShell 5.1 的 `workshop-recovery`、`workshop-bootstrap`、`workshop-launcher` 三套夹具均由主代理执行并复核通过。bootstrap 夹具目录为 `Temp/dst-c3dd9007`，launcher 夹具目录为 `Temp/工坊 连接测试 7b037135dc7f44db940b358d599ddfac`。隔离夹具不代表真实 Windows 自启动或所有磁盘故障场景均已覆盖。
+- Python 打包与隐私测试分组 7 + 11 + 1，共 19 项通过。初版产物检查及实机证据另列如下，不与测试夹具混用。
+- 初版候选实际构建于 `dist/0.6.0-beta.6-workshop-20261121T123905104641Z`，34 个工坊、310 个 companion、153 个 source 文件通过隐私扫描、ZIP CRC 与全部 SHA 摘要核验。解压包隔离 server 的 `/api/status` 返回 200；删除合成连接文件后 5041 ms 自动恢复，不等同于真实 Steam 更新周期。
+- 真实工坊一键启动器升级默认位置成功；两家账号文件和 settings 在升级前后原字节一致，网易 6／QQ 7 个歌单读取成功。实际游戏日志确认 beta.6，旧 `local_netease_music` beta.4 已通过 UI 禁用，保留工坊版。
+- 最新菜单避让修复已实机及 `test_mod_entries` 验证：音乐入口避开另一 Mod 未登记在 `menu.items` 的 IP 直连按钮。主菜单打开、网易《光年之外》播放、暂停、X／ESC 关闭、重新打开与恢复播放均成功。暂停位置 `32.249092970521545` 秒在两次间隔 16.6 秒的采样中完全不变；恢复后为 `38.3279` 秒并继续推进，native 连接为 true，error 为 null。这是界面和后台状态验证，不是听感或新延迟测量。
+- QQ 旧账号仍可读取 7 个歌单及 193 首曲目，但已购《难却》播放接口提示登录失效；未重新扫码，不能认定 QQ 登录／播放全面通过。QQ 搜索上游公开 endpoint 实际返回 HTTP 500/text/html，尚未修复。
+- 待验收：真实新二维码扫码与保存／重试、恢复目录窗口鼠标操作、真实 Steam 更新周期、Windows 登录自启；最终产物与校验结果以构建清单及交付记录为准，不预填新构建时间戳。初版 Windows-Companion、Source、WorkshopUpload 已构建，完整 Release.zip 未构建，候选未上传。
+- 本地中英工坊简介已精简；英文已保存，中文保存遭拒绝访问。Steam 显示待自动内容审核且条目暂时隐藏，中文线上尚未更新。
+- 目录恢复取消应保留原位置记录和自启动设置；新目录不会自动带回失效旧目录内无法访问的账号或缓存。自动恢复连接的前提是后台仍运行，不承诺从游戏中启动已关闭的后台。
+
 本候选与运行中的开发副本分开验收。不会把源码检查或替身测试称为所有电脑游戏实测。
 
 ## 已有0.5证据

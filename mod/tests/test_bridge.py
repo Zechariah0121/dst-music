@@ -20,7 +20,7 @@ lua.globals().Bridge = lua.execute(
     (Path(__file__).resolve().parents[1] / "scripts/dangomusic_bridge.lua").read_text(encoding="utf-8"))
 lua.execute(r'''
 local tasks, requests = {}, {}
-local inst = {DoTaskInTime = function(_, seconds, fn)
+local inst = {DoStaticTaskInTime = function(_, seconds, fn)
     local task = {seconds=seconds,fn=fn, Cancel=function(self) self.cancelled=true end}
     tasks[#tasks+1] = task
     return task
@@ -80,7 +80,7 @@ empty:Close()
 ''')
 lua.execute(r'''
 local tasks,requests={},{}
-local inst={DoTaskInTime=function(_,seconds,fn)
+local inst={DoStaticTaskInTime=function(_,seconds,fn)
  local t={seconds=seconds,fn=fn,Cancel=function(self) self.cancelled=true end}
  tasks[#tasks+1]=t;return t
 end}

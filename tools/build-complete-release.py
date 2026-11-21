@@ -12,6 +12,7 @@ WORKSHOP_ID = '3836261433'
 DOCUMENTS = {
     'README.zh-CN.md', 'WORKSHOP-DESCRIPTION.txt', 'WORKSHOP-DESCRIPTION.en.txt',
     'UPLOAD.md', 'CHANGELOG.txt', 'VALIDATION.md', 'LICENSE-DECISION.md',
+    'UPDATE-NOTES.zh-CN.txt', 'UPDATE-NOTES.en.txt',
     'START-HERE.txt', 'preview.png', 'modpreview.png', 'modpreview.gif',
     'modicon.png', 'ARTWORK.json', 'artwork-source.gif',
 }
@@ -112,6 +113,7 @@ def navigation(version):
 2. 上传内容目录选择本包中的 workshop-mod。
 3. 动态封面选择 modpreview.gif，静态封面选择 modpreview.png。
 4. 中文简介见 WORKSHOP-DESCRIPTION.txt，英文简介见 WORKSHOP-DESCRIPTION.en.txt。
+5. 本次更新日志可直接复制 UPDATE-NOTES.zh-CN.txt 或 UPDATE-NOTES.en.txt；历史记录见 CHANGELOG.txt。
 
 后台与源码
 Windows Companion 后台包位于 workshop-mod/windows-player/。

@@ -17,6 +17,10 @@ async function setup(t, overrides={}, bridgeOptions={}, prepare=async()=>{}) {
   const dir = await mkdtemp(resolve(tmpdir(),'dst-music-test-'));
   t.after(()=>rm(dir,{recursive:true,force:true}));
   await prepare(dir);
+  // 连接文件只写入有本项目身份的模组，测试也提供完整的临时身份标记。
+  await mkdir(resolve(dir,'mod'),{recursive:true});
+  await writeFile(resolve(dir,'mod/music_workshop_identity.json'),JSON.stringify({schema:1,id:'zcc-dst-music',channel:'workshop-beta',version:'0.6.0-beta.6'}),{flag:'wx'})
+    .catch(error=>{if(error.code!=='EEXIST')throw error;});
   let clock = 100000, mediaRange;
   const tracks = [1,2,3].map(i=>({id:String(i),name:`歌${i}`,artists:'歌手',duration:200}));
   const upstream = {

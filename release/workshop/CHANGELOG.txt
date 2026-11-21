@@ -1,3 +1,69 @@
+0.6.0-beta.6 — 工坊更新（2026-11-22）
+
+安装目录失效后支持重选和恢复，扫码确认后的临时错误支持有限次重试，主菜单可直接播放、暂停、继续和关闭音乐面板。后台仍运行时恢复丢失的连接文件，游戏离线时重新读取连接配置。安装说明突出「此电脑搜索 3836261433」。完整玩家说明见 UPDATE-NOTES.zh-CN.txt / UPDATE-NOTES.en.txt；GitHub 相对 beta.3 的累计改动见 release/github/RELEASE.md。
+
+更新前关闭游戏并停止旧后台，等待 Steam 更新后重新运行「一键启动播放器.cmd」。只重启游戏不会替换旧后台。QQ 搜索及播放仍受平台权限与接口可用性影响。
+
+以下保留 2026-11-21 的候选构建与验收记录，其中未发布状态仅指当时，不代表 11 月 22 日工坊状态。
+
+0.6.0-beta.6 — 未发布候选（2026-11-21）
+
+当前在线工坊仍为 0.6.0-beta.5。以下为本地候选改动，已完成部分真实主菜单操作及初版构建／升级检查；真实新扫码仍未完成，最终产物与校验结果以构建清单及交付记录为准。
+- 安装位置失效时支持交互重选和恢复；取消保留原位置记录及自启动设置，不静默回退到默认目录。
+- 二维码成功后，在原 180 秒有效期内支持同 key 幂等轮询；账号保存失败可同 key 重试，Lua 对可重试错误最多自动重试 3 次。
+- 主菜单新增原生音乐入口，音乐界面使用 UI 静态计时，无需先进入世界即可打开界面和控制播放。
+- 后台仍运行时每 5 秒检查并恢复被工坊更新清掉的连接文件；游戏离线时每 3 秒重读配置。后台已关闭仍须运行一键启动入口。
+- 精简中英文工坊简介与本地入门说明，安装步骤和实际目录置于演示图之前，减少重复图片与技术段落。
+
+本次 80/80 项 Node 回归、4 套 Lua 离线测试、Windows PowerShell 5.1 三套夹具及 19 项 Python 打包与隐私测试通过。初版 beta.6 已构建并通过隐私扫描、ZIP CRC 和全部 SHA 摘要检查，解压后台状态接口成功，合成连接文件删除后 5041 ms 恢复；真实工坊启动器已升级默认位置，保留两家账号和设置原字节。游戏日志确认 beta.6，主菜单网易播放、暂停、关闭／重开及恢复播放通过，暂停时两次间隔 16.6 秒的采样进度不变。菜单避让另一 Mod 的 IP 直连按钮已实机及 test_mod_entries 验证，最终产物与校验结果以构建清单及交付记录为准。
+QQ 旧账号仍可读取 7 个歌单和 193 首曲目，但已购《难却》播放提示登录失效；没有重新扫码。QQ 搜索上游公开接口返回 HTTP 500/text/html，未修复。真实新扫码、恢复目录窗口鼠标操作、真实 Steam 更新周期、Windows 登录自启仍待验收，候选未上传；历史音频检查不作为本候选新增证据。工坊英文简介已保存，中文保存拒绝访问且条目待自动内容审核暂时隐藏，中文线上尚未更新。细节见 VALIDATION.md。
+
+0.6.0-beta.6 — unpublished candidate (2026-11-21)
+
+The live Workshop version remains beta.5. Adds interactive recovery for unavailable installation folders while preserving location and startup settings on cancellation; idempotent QR polling during the original 180-second lifetime and same-key account-save retries; up to three automatic Lua retries for retryable errors; a native main-menu music entry with UI static scheduling; five-second connection-file recovery while the companion is running and three-second configuration rereads while the game is offline. A stopped companion still needs the Windows launcher. Setup documentation now precedes screenshots.
+
+80 Node tests, four offline Lua suites, three Windows PowerShell 5.1 fixtures and 19 Python tests passed. An initial beta.6 build passed privacy, ZIP CRC and SHA checks; extracted-server smoke and 5041 ms synthetic connection recovery passed. The real launcher upgraded the default installation without changing account/settings bytes. Actual main-menu NetEase playback, pause, close/reopen and resume passed. The latest menu-overlap fix passed in game and test_mod_entries; refer to build manifests and delivery records for final artifacts and verification results. Old QQ credentials read playlists but playback reported an expired login; QQ public search returned HTTP 500/text/html and remains unfixed. New QR login, real recovery-dialog clicks, the Steam update cycle and Windows login startup remain unverified. Nothing has been uploaded. The English Workshop description was saved; Chinese saving was denied while the item awaited content review and was temporarily hidden. Historical audio measurements remain historical.
+
+0.6.0-beta.5 — 工坊更新候选（2026-11-14）
+
+首次一键启动可自选安装目录，保留默认路径。记住目录并将程序、账号、设置和音乐缓存放在选定位置，已有一键安装沿用原目录。取消不安装；位置不可用不静默回退。停止和可选自启动复用位置记录，更新帮助文案。完整说明见 UPDATE-NOTES.zh-CN.txt / UPDATE-NOTES.en.txt。
+
+0.6.0-beta.4 — 工坊更新候选（2026-11-14）
+
+相对工坊 0.5.1-beta.3 的累计更新，包含以下 0.6.0 测试期改动；可直接粘贴的完整说明见 UPDATE-NOTES.zh-CN.txt。
+- 新增 QQ 音乐扫码、歌单、搜索和歌词，游戏内切换网易云／QQ 来源，账号独立保存；歌曲播放仍受权限和可用地址限制。
+- 新增两来源主题、左上角按钮隐藏、设置分组与说明、悬浮过渡及分层玻璃高光，增强按钮文字对比度。
+- 首页、排行榜及歌单列表按账号与来源缓存五分钟；过期后台刷新，失败保留旧内容，改善封面复用、滚动及静止时的更新。
+- 新增自动解压、连接与启动的一键入口，可选 Windows 登录自启动默认关闭；ESC 主菜单提供单个音乐播放器入口，移除系统设置页内的遮挡按钮。
+- 改进模组目录打开入口，新增 GitHub Releases 版本检查；原生音频下载失败后可点击播放重试。
+- 新增 WASAPI 共享输出并设为默认，初始化失败时自动回退 WaveOut，可与游戏、语音同时发声。
+- 修正暂停恢复、跳转进度和曲尾计时，避免暂停时间推进歌词，以及曲尾进度意外归零。
+- 音频设备停止和释放移至控制线程之外；切歌等待旧输出停止后再启动新曲。
+- 保留 WaveOut 兼容输出与原有地区、洞穴和雨天音乐空间音效。
+
+悬浮歌词、逐词动画、地区／雨天空间音效和关闭游戏自动暂停均为旧工坊已有功能，不列为新增。旧手动版升级应先从原目录停止后台，再运行新工坊目录内的一键启动器；旧账号和设置不自动迁移，首次可能需要重新扫码。已有 0.6.0 一键版账号与设置保留。
+
+两种输出均通过原生回归和 44.1/48 kHz 合成音回采；本机游戏内已检查暂停恢复、拖动进度、切歌及歌词显示。Voicemeeter、实际扬声器延迟和精确的声音与画面延迟未测量。检查中曾出现 HTTP 410 下载失败，重试后恢复，根因尚未确定，未列为已修复。测试细节见 VALIDATION.md。
+更新后请重新运行模组根目录的「一键启动播放器.cmd」以更新并启动配套后台；仅重启游戏不会替换旧后台。已有一键版账号与设置保留，旧手动版需先从原目录停止后台。本次可粘贴到工坊的更新日志见 UPDATE-NOTES.zh-CN.txt。
+
+0.6.0-beta.4 — Workshop update candidate (2026-11-14)
+
+Cumulative changes from Workshop 0.5.1-beta.3, including the following changes from 0.6.0 testing. See UPDATE-NOTES.en.txt for paste-ready notes.
+- Added QQ Music QR sign-in, playlists, search and lyrics, with in-game source switching and separate accounts. Playback still depends on permissions and available URLs.
+- Added source themes, a switch to hide the top-left button, grouped and explained settings, hover transitions and layered glass highlights; improved button text contrast.
+- Added five-minute caches separated by source and account for home, charts and playlist lists, retaining old content after failed refreshes; improved artwork reuse, scrolling and idle updates.
+- Added one-click extraction, connection and startup, with optional Windows startup off by default. A single Music Player entry in the ESC main menu replaces the overlapping buttons in the game's settings page.
+- Improved the mod-folder action, added GitHub Releases version checks and explicit retry after native audio download failures.
+- Added WASAPI shared output as the default, with WaveOut fallback on initialization failure. It plays alongside game audio and voice chat.
+- Corrected pause/resume, seek and end-of-stream timing so paused time does not advance lyrics and the final position is retained.
+- Moved output stop and cleanup away from the control thread; replacements wait for the previous output to stop.
+- Kept WaveOut compatibility output and the existing regional, cave and rain spatial effects.
+
+Floating lyrics, word animation, regional/rain effects and automatic pause on game exit already existed in the previous Workshop version. Stop the old manually extracted companion before using the new one-click launcher. Manual installations are not migrated automatically and may require sign-in again; existing 0.6.0 one-click installations retain accounts and settings.
+
+Both outputs passed native regression and synthetic 44.1/48 kHz render-loopback checks. Local in-game checks covered pause/resume, seeking, track changes and lyric rendering. Voicemeeter, physical speaker latency and precise audio-to-screen delay remain unmeasured. An HTTP 410 download failure recovered after a playback retry; its cause is undetermined and it is not claimed as fixed. See VALIDATION.md for scope.
+Run the mod's one-click launcher again after updating to install and start the updated companion. Restarting only the game does not replace a running companion. Existing one-click installations keep sign-in data and settings; stop older manual companions from their original folder first. Paste-ready Workshop notes are in UPDATE-NOTES.en.txt.
+
 0.6.0-beta.3 — 测试候选
 
 首页与歌单按来源及账号缓存五分钟，重开时先显示已有内容并后台刷新，失败保留旧内容；封面复用并回收资源。按钮对比度增强，ESC 主菜单提供单个原生“音乐播放器”入口：在线打开音乐设置，离线进入连接页并重读连接。打开模组目录会复用并尝试聚焦已有窗口，必要时可用 Alt+Tab。
@@ -21,3 +87,26 @@ Adds QQ Music QR sign-in, playlists and search alongside NetEase Cloud Music. Ac
 The player uses a unified layout with source themes, grouped settings and clearer explanations. The top-left button can be hidden. Glass styling uses translucent layers and highlights.
 Slow requests now run in background tasks with short polling following a beta.1 engine low-speed error. In-game validation of beta.2 remains pending.
 The Workshop package adds one-click installation, connection and optional Windows startup (off by default). After loading the updated Lua, the in-game settings can reload the connection. Existing manual installations are not migrated automatically and a fresh sign-in may be needed.
+
+0.5.1-beta.3 — 2026-11-09
+
+新增：关闭饥荒客户端后自动暂停音乐，保留歌曲、进度与队列。切换世界、主菜单、最小化不触发；专用服务器不计作客户端。重进游戏后手动继续播放，后台服务继续保留。
+关闭时正在加载歌曲或自动切歌，也会保持暂停，避免迟到的加载结果重新发声。
+包含 0.5.1-beta.2 的 Steam 路径去重修复。
+
+更新方式：先停止后台，将新版 Companion 完整文件覆盖到原后台目录，保留 .state，再重新连接并启动。自动暂停需要更新后台与原生音频程序，不能仅替换两个路径脚本。
+
+Added automatic pause when the DST client closes, keeping the song, position and queue. World transitions, the main menu and minimizing do not trigger it; dedicated servers are excluded. Reopening the game does not automatically resume playback. The companion service remains running.
+Pending song loads or automatic track changes stay paused after the game exits. Includes the Steam path deduplication fix from beta.2.
+Update the complete companion player while keeping .state, then reconnect and restart it. Updating only the two path scripts does not install automatic pause.
+
+0.5.1-beta.2 — 2026-11-09
+
+修复：Steam 注册表与 libraryfolders.vdf 中路径大小写或斜杠不同，导致同一个工坊 Mod 被误判为多个副本。
+Steam 库、游戏目录及最终 Mod 候选均进行路径规范化和不区分大小写的去重。真正存在多个副本时仍保留手动选择提示。
+
+已安装用户：先运行“停止播放器”，将新版后台文件覆盖到原后台目录，保留 .state，再运行“连接工坊Mod”和“启动播放器”。仅本次路径修复也可只覆盖 Runtime-Paths.ps1 与 Install-Mod.ps1。订阅更新不会自动替换已解压到其他目录的后台。
+
+Fixed false multiple-Mod detection when Steam's registry path and libraryfolders.vdf use different capitalization or path separators. Library paths, game paths and final Mod candidates are now normalized and deduplicated case-insensitively. Distinct physical copies still require explicit selection.
+
+Existing users: stop the player, copy the updated companion files into your existing player folder while keeping .state, then reconnect the Workshop Mod and start the player. For this path fix only, replacing Runtime-Paths.ps1 and Install-Mod.ps1 is sufficient. Workshop updates do not automatically update a companion player already extracted elsewhere.

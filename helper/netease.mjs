@@ -16,7 +16,8 @@ export function encryptWeapi(data) {
   while (power) { if (power & 1n) encrypted = encrypted * base % modulus; base = base * base % modulus; power >>= 1n; }
   return new URLSearchParams({ params: aes(aes(JSON.stringify(data), Buffer.from('0CoJUm6Qyw8W8jud')), Buffer.from(key)), encSecKey: encrypted.toString(16).padStart(256, '0') });
 }
-const businessError = (message, status = 422) => Object.assign(new Error(message), { status });
+const trustedError = Symbol('neteaseError');
+const businessError = (message, status = 422) => Object.assign(new Error(message), { status, [trustedError]:true });
 const safeError = () => businessError('网易云请求失败，请稍后重试或重新登录',502);
 export function validateMediaUrl(value) {
   let url;
@@ -78,9 +79,14 @@ export function createNetease({ fetchImpl = fetch } = {}) {
       let size = 0; const chunks = [];
       for await (const chunk of response.body) { size += chunk.length; if (size > 12 * 1024 * 1024) throw safeError(); chunks.push(chunk); }
       const body = JSON.parse(Buffer.concat(chunks).toString('utf8'));
-      if (body.code && ![200,800,801,802,803].includes(body.code)) throw safeError();
+      const code = Number(body.code || 0);
+      if ([301,401].includes(code)) throw businessError('网易云登录已失效，请重新扫码',401);
+      if (code === 429) throw businessError('网易云请求过于频繁，请稍后重试',429);
+      if (code && ![200,800,801,802,803].includes(code)) {
+        throw businessError(Number.isSafeInteger(code) ? `网易云请求失败（错误码 ${code}），请稍后重试` : '网易云返回数据无效，请稍后重试',502);
+      }
       return { body, cookies: response.headers.getSetCookie() };
-    } catch { throw safeError(); }
+    } catch (error) { throw error?.[trustedError] ? error : safeError(); }
   }
   const get = async (path, cookie) => (await request(path, cookie)).body;
   const track = t => ({ id: String(t.id), name: String(t.name || '未命名歌曲'), artists: (t.ar || t.artists || []).map(a => a.name).join(' / '), duration: Number(t.dt ?? t.duration ?? 0) / 1000, ...(t.al?.picUrl || t.album?.picUrl ? { cover: t.al?.picUrl || t.album?.picUrl } : {}) });
@@ -92,7 +98,7 @@ export function createNetease({ fetchImpl = fetch } = {}) {
       const status = {800:'expired',801:'waiting',802:'scanned',803:'success'}[body.code];
       if (!status) throw safeError();
       const cookie = cookies.map(c => c.split(';')[0]).filter(c => /^(MUSIC_U|__csrf|MUSIC_A_T|MUSIC_R_T|NMTID)=/.test(c)).join('; ');
-      if (status === 'success' && !cookie.includes('MUSIC_U=')) throw safeError();
+      if (status === 'success' && !/(?:^|;\s*)MUSIC_U=[^;]+/.test(cookie)) throw businessError('网易云已确认扫码，但未返回有效登录凭据，请稍后重试',502);
       return { status, cookie };
     },
     async account(cookie) { const body = await get('/api/nuser/account/get', cookie); const id = body.profile?.userId || body.account?.id; if (!id) throw businessError('登录已失效，请重新扫码',401); return { id: String(id), nickname: String(body.profile?.nickname || '') }; },

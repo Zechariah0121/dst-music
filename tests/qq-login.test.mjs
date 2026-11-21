@@ -157,3 +157,38 @@ test('QQ QR handles subscription rejection, handshake cancellation, and late con
   await immediate();
   assert.equal(f.api.checkLogin(key).status, 'expired');
 });
+
+
+test('QQ QR 保留平台错误原因，凭据校验最多每个候选重试一次',async t => {
+  for(const code of [104604,20279,765432]) {
+    const f = setup(async () => ({code,data:{}}));
+    t.after(() => f.api.close());
+    await assert.rejects(f.api.startLogin(), error => {
+      if(code===104604)return error.status===429 && /过于频繁/.test(error.message);
+      if(code===20279)return error.status===409 && /设备已达上限/.test(error.message);
+      return error.status===502 && /错误码 765432/.test(error.message);
+    });
+  }
+  let verifies = 0;
+  const f = setup(async (_module,method) => {
+    if(method==='CreateQRCode')return qr;
+    if(method==='Login')return {code:0,data:{musicid:account.id,musickey:'test-exchanged',loginType:2}};
+    verifies++;
+    return {code:104400,data:{}};
+  });
+  t.after(() => f.api.close());
+  const start = f.api.startLogin();
+  await immediate();
+  acceptConnection(f.sockets[0]);f.sockets[0].data(subAck);
+  const {key} = await start;
+  f.sockets[0].data(publish('cookies',confirmation));
+  for(let attempt=0;attempt<100 && f.api.checkLogin(key).status==='scanned';attempt++) {
+    await new Promise(resolve=>setTimeout(resolve,20));
+  }
+  assert.equal(verifies,4);
+  assert.equal(f.api.checkLogin(key).status,'failed');
+  assert.match(f.api.checkLogin(key).error,/登录已失效/);
+  f.sockets[0].data(publish('cookies',confirmation));
+  await immediate();
+  assert.equal(verifies,4);
+});

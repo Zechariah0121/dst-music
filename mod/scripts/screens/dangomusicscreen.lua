@@ -60,7 +60,7 @@ local MusicScreen = Class(Screen,function(self,controller,onclose,initialView)
     elseif initialView=="settings" or initialView=="playerSettings" then self:ShowSettings("player")
     else self:ShowHome("recommend"); self:LoadPlaylists() end
     self:UpdateState()
-    self.tick=self.inst:DoPeriodicTask(.15,function() if not self.closed then self:UpdateProgress(); self:PrefetchTracks(); self:UpdateArtwork() end end)
+    self.tick=self.inst:DoStaticPeriodicTask(.15,function() if not self.closed then self:UpdateProgress(); self:PrefetchTracks(); self:UpdateArtwork() end end)
 end)
 function MusicScreen:Request(path,method,body,callback)
     self.controller:Request(path,method or "GET",body,function(data,err)
@@ -86,6 +86,7 @@ function MusicScreen:CancelLogin()
     if self.loginTask then self.loginTask:Cancel(); self.loginTask=nil end
     local key,provider=self.loginKey,self.loginProvider
     self.loginKey,self.loginProvider=nil,nil
+    self.loginPending,self.loginErrors=false,0
     if key then self.controller:Request("/api/login/cancel","POST",{key=key,provider=provider}) end
 end
 function MusicScreen:ChangeProvider(provider)
@@ -335,7 +336,7 @@ function MusicScreen:ShowConnectionHelp()
         "1   在 Steam 订阅本模组并等待下载。",
         "2   Steam 库右键饥荒联机版 → 管理 → 浏览本地文件。",
         "3   打开 mods/workshop-3836261433；若没有，请看下方路径。",
-        "4   双击“一键启动播放器.cmd”，回到游戏点“重新连接”。",
+        "4   双击“一键启动播放器.cmd”，首次选择目录后回游戏重新连接。",
     }
     for i,text in ipairs(steps) do UI.Label(p,text,-340,175-(i-1)*43,830,19) end
     if not localInstall then
@@ -521,10 +522,10 @@ function MusicScreen:LocateTrack()
         if offset>=self.total then self.message:SetString("当前歌曲不在此列表中"); return end
         if self.trackCache[offset+1] then scan(offset+self.batchSize); return end
         if next(self.pendingBatches) then
-            self.locateTask=self.inst:DoTaskInTime(.2,function() scan(offset) end); return
+            self.locateTask=self.inst:DoStaticTaskInTime(.2,function() scan(offset) end); return
         end
         self:FetchTrackBatch(offset,function(ok)
-            if ok and not find() then self.locateTask=self.inst:DoTaskInTime(.05,function() scan(offset+self.batchSize) end) end
+            if ok and not find() then self.locateTask=self.inst:DoStaticTaskInTime(.05,function() scan(offset+self.batchSize) end) end
         end)
     end
     scan(0)
@@ -686,7 +687,7 @@ function MusicScreen:SettingsTabs(parent,selected)
     end
 end
 function MusicScreen:ShowUpdates()
-    local p=self:NewContent("updates","更新与帮助","工坊 Mod 由 Steam 更新 · Windows 配套后台从 GitHub 下载")
+    local p=self:NewContent("updates","更新与帮助","Steam 更新工坊与随包后台 · GitHub 提供备用下载")
     self:SettingsTabs(p,"updates")
     UI.Panel(p,88,93,900,166,{1,1,1,.86},"card")
     self.updateTitle=UI.Label(p,"正在读取版本信息…",-335,145,830,24)
@@ -703,7 +704,7 @@ function MusicScreen:ShowUpdates()
     UI.Panel(p,88,-131,900,130,{1,1,1,.7},"card")
     UI.Label(p,"更新步骤",-335,-89,830,18)
     UI.Label(p,"Mod：等待 Steam 下载更新，再重启游戏。",-335,-121,830,17,UI.muted)
-    UI.Label(p,"后台：退出旧后台，解压新版配套包并启动；工坊内置包可运行一键启动。",-335,-151,850,17,UI.muted)
+    UI.Label(p,"后台：更新后运行工坊目录的一键启动器，沿用已记住的安装位置。",-335,-151,850,17,UI.muted)
     UI.Label(p,"“音乐与环境”可关闭自动检查。这里只检查版本，不会自动安装。",-335,-179,850,16,UI.muted)
     if self.controller.updateState then self:RenderUpdates(self.controller.updateState) end
     self:ReadUpdates(false)
@@ -730,7 +731,7 @@ function MusicScreen:ReadUpdates(force)
         if data then self.controller.updateState=data end
         self:RenderUpdates(data or self.controller.updateState,err)
         if data and data.status=="checking" then
-            self.updateTask=self.inst:DoTaskInTime(1,function()
+            self.updateTask=self.inst:DoStaticTaskInTime(1,function()
                 self.updateTask=nil
                 if not self.closed and self.view=="updates" and version==self.viewVersion then self:ReadUpdates(false) end
             end)
@@ -959,20 +960,41 @@ function MusicScreen:StartLogin()
                 self.subtitle:SetString("打开手机"..(self.provider=="qq" and "QQ音乐" or "网易云音乐").." App，扫描二维码并确认登录")
             else self.subtitle:SetString("二维码暂时不可用，请重新生成") end
         end)
-        UI.Button(p,"重新生成",70,-145,170,36,function() self:StartLogin() end)
+        UI.Button(p,"重试确认",-30,-145,170,36,function()
+            if self.loginPending or self.loginKey~=data.key then return end
+            if self.loginTask then self.loginTask:Cancel(); self.loginTask=nil end
+            self.loginErrors=0
+            self:CheckLogin(ver,data.key)
+        end)
+        UI.Button(p,"重新生成",170,-145,170,36,function() self:StartLogin() end)
         self:CheckLogin(ver,data.key)
     end)
 end
 function MusicScreen:CheckLogin(ver,key)
     self.loginTask=nil
-    if self.closed or ver~=self.viewVersion or self.loginKey~=key then return end
-    self:SourceRequest("/api/login/check?key="..Escape(key),"GET",nil,function(data)
-        if ver~=self.viewVersion then return end
+    if self.closed or ver~=self.viewVersion or self.loginKey~=key or self.loginPending then return end
+    self.loginPending=true
+    self:SourceRequest("/api/login/check?key="..Escape(key),"GET",nil,function(data,err)
+        if self.closed or ver~=self.viewVersion or self.loginKey~=key then return end
+        self.loginPending=false
+        if err then
+            -- 网络或本机保存失败时保留原二维码，只重试有限次数，避免不断要求重扫。
+            self.loginErrors=(self.loginErrors or 0)+1
+            if self.loginErrors<=3 then
+                self.subtitle:SetString("登录确认暂未完成，正在重试（"..self.loginErrors.."/3）；原因见下方")
+                self.loginTask=self.inst:DoStaticTaskInTime(self.loginErrors*2,function() self:CheckLogin(ver,key) end)
+            else
+                self.subtitle:SetString("自动确认已暂停：处理下方问题后点「重试确认」，无需重新扫码")
+            end
+            return
+        end
+        self.loginErrors=0
         local code=data and tonumber(data.code)
         if code==803 or data and (data.status=="success" or data.loggedIn or data.account) then
             self.loginKey,self.loginProvider=nil,nil
+            if data.account then self.controller.state.account=data.account end
             self.subtitle:SetString("登录成功，正在刷新歌单…"); if self.controller.InvalidateCatalog then self.controller:InvalidateCatalog(self.provider) end; self.playlists={}; self.sidebarOffset=0; self:RenderSidebar(); self:LoadPlaylists(); self.controller:Poll()
-            self.inst:DoTaskInTime(1,function() if not self.closed and ver==self.viewVersion then self:ShowAccount() end end)
+            self.inst:DoStaticTaskInTime(1,function() if not self.closed and ver==self.viewVersion then self:ShowAccount() end end)
         elseif data and (data.status=="failed" or data.status=="canceled") then
             self.loginKey,self.loginProvider=nil,nil
             self.subtitle:SetString(type(data.message)=="string" and data.message~="" and data.message or "登录已结束，请重新生成二维码")
@@ -981,7 +1003,7 @@ function MusicScreen:CheckLogin(ver,key)
             self.subtitle:SetString("二维码已过期，请重新生成")
         else
             if code==802 or data and data.status=="scanned" then self.subtitle:SetString("已扫码，请在手机上确认登录") end
-            self.loginTask=self.inst:DoTaskInTime(2,function() self:CheckLogin(ver,key) end)
+            self.loginTask=self.inst:DoStaticTaskInTime(2,function() self:CheckLogin(ver,key) end)
         end
     end)
 end

@@ -96,12 +96,12 @@ function Bridge:Request(path, method, body, callback)
             Finish(value,nil,false)
         end
     end
-    req.timeout=inst:DoTaskInTime(slow and 45 or 8,function()
+    req.timeout=inst:DoStaticTaskInTime(slow and 45 or 8,function()
         Finish(nil,"连接超时，请检查本机播放器；操作可能已生效，请刷新状态",true)
     end)
     local Poll
     local function SchedulePoll()
-        req.poll=inst:DoTaskInTime(.5,function()
+        req.poll=inst:DoStaticTaskInTime(.5,function()
             req.poll=nil
             if not req.done then Poll() end
         end)

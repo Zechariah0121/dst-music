@@ -13,7 +13,7 @@ import zipfile
 
 
 ROOT = Path(__file__).resolve().parents[1]
-VERSION = '0.6.0-beta.3'
+VERSION = '0.6.0-beta.6'
 STAGE = 'workshop-beta-upload-bundle'
 COMPANION = 'DST-Music-' + VERSION + '-Windows-Companion'
 SOURCE = 'DST-Music-' + VERSION + '-Source'
@@ -22,6 +22,7 @@ LICENSE_DECISION = 'component-licenses-preserved'
 IDENTITY = {'schema': 1, 'id': 'zcc-dst-music', 'channel': 'workshop-beta', 'version': VERSION}
 WORKSHOP_DOCS = (
     'README.zh-CN.md', 'WORKSHOP-DESCRIPTION.txt', 'WORKSHOP-DESCRIPTION.en.txt', 'UPLOAD.md', 'CHANGELOG.txt',
+    'UPDATE-NOTES.zh-CN.txt', 'UPDATE-NOTES.en.txt',
     'VALIDATION.md', 'LICENSE-DECISION.md', 'START-HERE.txt',
     'preview.png', 'modpreview.png', 'modpreview.gif', 'modicon.png', 'ARTWORK.json', 'artwork-source.gif',
 )
@@ -138,6 +139,8 @@ def collect_mod(root):
     files.add('helper/public/vendor/qrcode-LICENSE.txt', 'licenses/qrcode-LICENSE.txt')
     files.add('release/workshop/LICENSE-DECISION.md', 'LICENSE-DECISION.md')
     files.add('release/workshop/START-HERE.txt', 'START-HERE.txt')
+    # 安装帮助可直接阅读，玩家无需先解压配套包寻找说明。
+    files.add('release/workshop/README.zh-CN.md', 'windows-player/README.zh-CN.md')
     for source, destination in WORKSHOP_LAUNCHER:
         files.add(source, destination)
     files.add('Runtime-Paths.ps1', 'windows-player/Runtime-Paths.ps1')

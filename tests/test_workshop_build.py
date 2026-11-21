@@ -97,6 +97,7 @@ class WorkshopBuildTests(unittest.TestCase):
         self.assertNotIn('release/workshop/preview.svg', source)
         self.assertEqual(json.loads(workshop['music_workshop_identity.json']), BUILDER.IDENTITY)
         self.assertIn('scripts/widgets/music_synthetic.lua', workshop)
+        self.assertEqual(workshop['windows-player/README.zh-CN.md'], companion['README.md'])
         self.assertIn('licenses/DangoMusic.LICENSE.txt', workshop)
         self.assertFalse(any(name.startswith(('helper/', 'runtime/', 'tests/')) for name in workshop))
         self.assertEqual(workshop['images/music/ui.tex'], (self.root / 'mod/images/music/ui.tex').read_bytes())

@@ -88,8 +88,12 @@ for (const codec of ['wav','mp3']) test(`native ${codec} worker claims, plays, p
     await until(() => latest()?.position > beforeSlowReport + 0.65, 'STA keeps advancing during delayed HTTP reports');
     assert.equal(mediaRequests,beforeRegionMediaRequests,'regional transition must not reopen the audio stream');
     delayReports = false;
-    change({position:7.6,seekRevision:3});
-    await until(() => reports.some(r => r.revision === 5 && r.ended), 'MediaEnded report');
+    // Immediate EOF after seek must also end once, even when WASAPI resets its
+    // device clock to zero without ever submitting a new audio frame.
+    change({position:latest().duration,seekRevision:3});
+    await until(() => reports.some(r => r.revision === 5 && r.ended), 'MediaEnded report for seek to exact end');
+    const atEnd=reports.find(r=>r.revision===5&&r.ended);
+    assert.ok(Math.abs(atEnd.position-atEnd.duration)<.02,'EOF retains final content position');
     change({track:{id:'9'},mediaUrl:`/api/media?trackId=9&token=${token}`,position:0,seekRevision:4});
     await until(() => latest()?.revision === 6 && !!latest().error && !latest().playing, 'MediaFailed report');
     server.closeAllConnections(); await new Promise(resolve => server.close(resolve));

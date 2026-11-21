@@ -44,6 +44,13 @@ jobs:
           tests/local-actions.test.mjs tests/game-request-integration.test.mjs
           tests/music-sources.test.mjs tests/qqmusic.test.mjs tests/qq-login.test.mjs
           tests/qq-lyrics.test.mjs tests/game-assets.test.mjs
+          tests/login-persistence.test.mjs tests/game-connection.test.mjs tests/runtime-assets.test.mjs
+      - name: Workshop launcher recovery checks
+        run: |
+          & powershell -NoProfile -ExecutionPolicy Bypass -File tests/portable-launcher/workshop-recovery.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & powershell -NoProfile -ExecutionPolicy Bypass -File tests/portable-launcher/workshop-bootstrap.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Packaging and privacy checks
         run: |
           python -m unittest discover -s tests -p test_workshop_build.py
@@ -51,6 +58,10 @@ jobs:
           python -m unittest discover -s tests -p test_complete_release.py
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           python -m unittest discover -s tests -p test_private_patterns.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Native output initialization policy
+        run: |
+          & "$env:WINDIR/System32/WindowsPowerShell/v1.0/powershell.exe" -NoProfile -ExecutionPolicy Bypass -File tests/native-output-fallback.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Build all release packages
         env:

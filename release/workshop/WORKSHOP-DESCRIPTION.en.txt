@@ -1,43 +1,76 @@
-[h1]Bring your music into the Constant[/h1]
-Listen to your NetEase Cloud Music and QQ Music playlists while exploring, building, sailing or venturing into the caves.
+[h1]DangoMusic | Bring your favorite songs into the Constant[/h1]
+[b]Client-only mod · 64-bit Windows 10/11[/b]
+Bring NetEase Cloud Music and QQ Music into Don't Starve Together: choose songs, control playback and see floating lyrics in game. Your server and friends do not need this mod.
 
-[h2]Features[/h2]
+[h2]First-time setup: 5 steps[/h2]
+[b]The companion is included in the Workshop download.[/b]
 [list]
-[*]Sign in by QR code, browse playlists and search, with playback, seek, volume, queue and repeat controls. Accounts are separate; switching browsing sources does not interrupt the current song.
-[*]Floating lyrics, album artwork, song cards and a compact player, with adjustable lyrics, hotkeys, interface and top-left button.
-[*]Regional and rain spatial effects process the music. Closing the DST client pauses playback; resume manually after reopening.
-[*]Version checks read GitHub Releases; check manually or disable automatic startup and six-hour checks. Updates are not installed automatically. Steam updates Workshop subscriptions.
+[*][b]1. Subscribe and wait for Steam to finish downloading.[/b] In DST, open Mods → Client Mods and enable 本机音乐播放器（网易云 / QQ 测试版） (Local Music Player).
+[*][b]2. Open This PC and search for 3836261433.[/b]
+Enter the number below in the search box at the top right, press Enter and wait for the search to finish:
 [/list]
-[b]Client-only mod: your server and friends do not need to install it. Supports 64-bit Windows 10/11.[/b]
+[code]3836261433[/code]
+[b]Open the search results and find the mod folder containing 一键启动播放器.cmd (One-click Start Player).[/b] If several folders match, choose the one under steamapps\workshop\content\322330 in your Steam library.
+[list]
+[*][b]3. Double-click 一键启动播放器.cmd (One-click Start Player).[/b] Choose a folder, or click 使用默认目录 (Use Default Folder), then 解压并启动 (Extract and Start). Wait for the companion to start.
+[*][b]4. Return to DST and click 音乐播放器 (Music Player) on the main menu.[/b] In a world, F8 also opens it. Choose NetEase or QQ Music at the bottom left, then click the account entry. Scan with that service's mobile app and confirm login.
+[*][b]5. Choose a playlist or search for a song, then play.[/b] Keep the companion running while listening.
+[/list]
+Filenames above match the download. Run the Windows launcher first: subscribing, enabling the mod or pressing F8 does not start a companion that is not running.
 
-[h2]In-game demos[/h2]
-[b]In-game music player[/b]
-[img]https://images.steamusercontent.com/ugc/9967333670796669768/43964D7CDC40157871B5D730DA9D55021F092125/[/img]
+[b]No search result? Try this alternative:[/b]
+Right-click DST in your Steam library → Manage → Browse local files. Go up two folders to steamapps, then open workshop → content → 322330 → 3836261433:
+[code]SteamLibrary\steamapps\workshop\content\322330\3836261433[/code]
 
-[b]Floating world lyrics[/b]
-[img]https://images.steamusercontent.com/ugc/9851184035425131933/4C1230D1FD3593569ACBD5E5F6D21F48C9C36E40/[/img]
+[h2]How to start the player next time[/h2]
+If the companion is not running, double-click the same 一键启动播放器.cmd. If it is already running, open the in-game player directly.
+You can play, pause, resume and close the player panel from DST's main menu without entering a world. In a world, use F8 or ESC → 音乐播放器 (Music Player).
+Windows startup is [b]off by default[/b]. Enable it through 自启动设置.cmd in the mod folder: check the option and save. Turn it off in the same window.
+Closing DST pauses music; resume it manually when you return. To exit the companion completely, run windows-player\停止配套播放器.cmd.
 
-[b]Lyric colors and glow[/b]
-[img]https://images.steamusercontent.com/ugc/17892579911571876610/988DFB2244BC1D532EACDC75BE1D00FCD77A5148/[/img]
+[h2]After a Workshop update[/h2]
+[list]
+[*]Close DST and run windows-player\停止配套播放器.cmd to stop the old companion. For an old manual installation, run 停止播放器.cmd in its original folder.
+[*]Wait for Steam to finish, then run 一键启动播放器.cmd in the mod root to start the new companion. Launch DST afterwards.
+[/list]
+Existing 0.6.0 one-click installations retain their folder, accounts and settings. Switching from an old manual installation may require signing in again. [b]Restarting only DST does not replace a running old companion.[/b]
+Settings → 更新与帮助 (Updates and Help) can check companion versions. [b]Checking does not install updates.[/b] No extra GitHub download is needed for first-time setup.
 
-[b]Word-by-word animation[/b]
+[h2]What can it do?[/h2]
+Sign in to NetEase and QQ Music separately. Browse playlists, search, manage the queue, seek, adjust volume and choose repeat modes. Switching the browsing source does not interrupt the current track.
+
+[b]NetEase Cloud Music[/b]
+[img]https://images.steamusercontent.com/ugc/12011811996516528454/BF9254C4B90ED8CC8FED2E5C583A4280DEF07655/[/img]
+
+[b]QQ Music[/b]
+[img]https://images.steamusercontent.com/ugc/9696323220272373771/1EBEBD8E1CFF44DA2E0AE1C810303FE8EFF1CE33/[/img]
+
+[b]Floating lyrics and word-by-word animation[/b]
 [img]https://images.steamusercontent.com/ugc/17996337735614244100/AD30AC25103DA485CC36303C4AFF554178127799/[/img]
+Customize lyric color, size, position, animation and song cards in Settings. You can also hide the top-left Music button; F8 and the ESC entry remain available.
+The Caves, Lunar Island, Ocean, Ruins, Atrium and Deciduous Forest have different spatial effects, with additional changes during rain. Adjust their intensity or turn them off. These effects process the song itself, without adding separate environmental tracks.
 
-[b]Regional and rainy-weather audio settings[/b]
-[img]https://images.steamusercontent.com/ugc/16653959750613450059/1516D6705146B5C211F3908879D8AB85496CBBEC/[/img]
+[h2]Common questions[/h2]
+[b]F8 opens the player, but the companion is offline?[/b]
+Check step 3 first. Click the top-right companion status for connection help; inside a world, ESC → 音乐播放器 (Music Player) also opens it. A running companion automatically attempts to restore a missing connection file, and the game rereads its connection settings. A stopped companion still needs the Windows launcher. Use Alt+Tab if a folder window opens behind DST.
 
-[h2]First-time setup[/h2]
-[list]
-[*]Subscribe, wait for Steam to download the mod, open its Workshop folder and double-click 一键启动播放器.cmd (One-click Start Player) at the root. The included companion is checked, extracted, connected and started automatically.
-[*]Enable the mod under Client Mods, enter a world and press F8. If the game already loaded older Lua, reload it once after updating; use ESC → Music Player: it opens music settings when online, or the connection page and reloads the connection when offline.
-[*]Choose NetEase or QQ Music on the account page and confirm the QR login with the corresponding phone app. Later, double-click the launcher again, or use 自启动设置.cmd (Startup Settings) to opt in to starting it on Windows sign-in. Startup is off by default.
-[/list]
-The first launch requires a double-click: the game cannot launch the local program from scratch. To stop it, run 停止配套播放器.cmd (Stop Companion Player) in windows-player. If the opened mod folder is obscured, use Alt+Tab. Existing manual installations are not migrated automatically; a new QR sign-in may be needed. The Workshop folder is usually SteamLibrary\steamapps\workshop\content\322330\3836261433 or mods\workshop-3836261433 inside the game folder.
+[b]The previously selected installation folder is unavailable?[/b]
+First follow the update steps above to use the new launcher. Run 一键启动播放器.cmd again, choose an available folder in the recovery window, then click 解压并启动 (Extract and Start). If your original folder was on a removable drive, you can reconnect that drive instead. Cancelling keeps the old location record. A new folder cannot recover deleted account data or cache, so signing in again may be necessary.
 
-[h2]Beta notes[/h2]
-[list]
-[*]Subscribing does not start the companion. Platform membership, licensing, region and preview restrictions apply; some QQ songs playable on a phone may not return a playback URL through the interface.
-[*]Word timing for ordinary line-timed lyrics is estimated; accurate timing requires word timestamps. Glass styling uses translucent layers and highlights, not background blur.
-[*]Local audio imports, synchronized listening across players and Mac/Linux are not supported.
-[/list]
-Created by Zcc; not an official NetEase, QQ Music, Klei or DangoMusic product. Includes GPLv3-derived audio and QQ interoperability implementations based on [url=https://github.com/Sorihiko/DangoMusic]Sorihiko / DangoMusic[/url]. Corresponding source, GPL text and other third-party licenses are included; see THIRD-PARTY-NOTICES.md and LICENSE-DECISION.md in the package.
+[b]You confirmed the QR code, but login did not finish?[/b]
+Temporary network or save failures receive a limited number of automatic retries. When 重试确认 (Retry Confirmation) appears, retry without immediately generating another QR code. Generate a new code when the old one expires or the service explicitly reports an expired login. For persistent issues, report the exact message, mod/companion versions and reproduction steps.
+
+[b]Where are the program and cache stored?[/b]
+In the folder chosen on first launch; later launches and updates reuse it. The default is:
+[code]%LOCALAPPDATA%\Zcc\DST-Music\Workshop\3836261433[/code]
+Do not enable an old local copy alongside this Workshop mod, or run old and new companions together.
+
+[b]Why does a song play on my phone but not here?[/b]
+Membership, licensing, regional and preview restrictions still apply. Some QQ tracks may not return a playable URL; search may also fail when the service's interface is temporarily unavailable.
+
+[b]Can friends hear it? What about Mac or local files?[/b]
+Playback is local: friends cannot see your lyrics or hear your music. Synchronized listening, local audio import and Mac/Linux are not supported yet.
+
+[h2]Credits, source and licensing[/h2]
+Inspired by [url=https://github.com/Sorihiko/DangoMusic]Sorihiko / DangoMusic[/url]. Includes derivative audio and QQ interoperability code under GPLv3. Corresponding source, the GPL text and third-party credits are included: see source, THIRD-PARTY-NOTICES.md and LICENSE-DECISION.md. Release history: [url=https://github.com/Zechariah0121/dst-music/releases]GitHub Releases[/url].
+Not an official NetEase, QQ Music, Klei or DangoMusic product.

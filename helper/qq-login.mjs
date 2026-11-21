@@ -45,7 +45,7 @@ function loginError(code) {
   if (EXPIRED.has(code)) return qqError('QQ 音乐登录已失效，请重新扫码', 401);
   if (code === 20279) return qqError('QQ 音乐登录设备已达上限，请在客户端管理登录设备后重试', 409);
   if (code === 104604) return qqError('QQ 音乐扫码请求过于频繁，请稍后重试', 429);
-  return qqError('QQ 音乐拒绝了本次登录，请重新扫码');
+  return qqError(Number.isSafeInteger(code) && code !== 0 ? `QQ 音乐拒绝了本次登录（错误码 ${code}），请稍后重试` : 'QQ 音乐登录校验未返回有效账号，请稍后重试');
 }
 
 function variable(value) {
@@ -396,7 +396,7 @@ export function createQqLogin({call, now = Date.now, webSocketFactory = createSo
   }
 
   function complete(session, status, fields = {}) {
-    if (current !== session || session.controller.signal.aborted) return;
+    if (current !== session || session.controller.signal.aborted || ['success','failed','expired','canceled'].includes(session.result.status)) return;
     session.result = {status, ...fields};
     session.channel?.close();
   }

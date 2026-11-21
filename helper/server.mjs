@@ -12,6 +12,7 @@ import {createSettingsStore,SETTINGS_SCHEMA} from './settings.mjs';
 import {createGameRequests} from './game-requests.mjs';
 import {createModFolderOpener} from './local-actions.mjs';
 import {createUpdateChecker,UPDATE_SOURCE} from './updates.mjs';
+import {createGameConnection} from './game-connection.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const NEUTRAL_ENVIRONMENT=Object.freeze({water:false,cave:false,indoor:false,rain:0,region:'surface'});
@@ -46,6 +47,7 @@ export async function createBridge(options = {}) {
   const token = options.token || saved?.token || randomBytes(32).toString('hex');
   if (!/^[a-zA-Z0-9_-]{24,128}$/.test(token)) throw new Error('本机 token 格式无效');
   const accounts = {};
+  const saveAccount = options.saveAccount || atomic;
   const accountFile = provider => resolve(stateDir, provider === 'netease' ? 'account.json' : 'account-qq.json');
   for (const provider of Object.keys(providers)) {
     try { const auth = JSON.parse(await readFile(accountFile(provider), 'utf8')); accounts[provider] = {cookie:auth.cookie || '',account:auth.account || null}; }
@@ -90,6 +92,11 @@ export async function createBridge(options = {}) {
     loginVersions[provider]++;
     for (const [key,entry] of loginKeys) if(entry.provider === provider) {providers[provider].cancelLogin?.(key);loginKeys.delete(key);}
     providers[provider].cancelLogin?.();
+  }
+  async function waitForLoginCommit(provider) {
+    for (const entry of loginKeys.values()) {
+      if (entry.provider === provider && entry.commitPromise) await entry.commitPromise.catch(() => {});
+    }
   }
   function clearSourceCaches(provider) {
     for(const controller of mediaStreams[provider])controller.abort();
@@ -235,6 +242,7 @@ export async function createBridge(options = {}) {
   function json(res, data, status = 200) {
     if(!gameRequests.complete(res,data,status))sendJson(res,data,status);
   }
+  let gameConnection;
   const server = http.createServer(async (req, res) => {
     try {
       const port = server.address()?.port;
@@ -293,12 +301,12 @@ export async function createBridge(options = {}) {
         }
         if(req.method==='GET'&&url.pathname==='/api/login/artwork') {
           const key=q.get('key'),entry=loginKeys.get(key);
-          if(!entry||now()-entry.createdAt>180000)throw fail('二维码已过期，请重新生成');
+          if(!entry||entry.completed||now()-entry.createdAt>180000)throw fail('二维码已过期，请重新生成');
           return json(res,{ok:true,asset:await assetRequest(assets=>entry.image?assets.qrImage(key,entry.image):assets.qr(key,entry.url))});
         }
         if(req.method==='GET'&&url.pathname==='/api/login/image') {
           const entry=loginKeys.get(q.get('key'));
-          if(!entry?.image||now()-entry.createdAt>180000)throw fail('二维码已过期，请重新生成',404);
+          if(!entry?.image||entry.completed||now()-entry.createdAt>180000)throw fail('二维码已过期，请重新生成',404);
           res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff','Referrer-Policy':'no-referrer'});res.end(entry.image);return;
         }
         if(req.method==='GET'&&url.pathname==='/api/discover') {
@@ -340,20 +348,27 @@ export async function createBridge(options = {}) {
           const result = await serial(async () => {
             if (!loginKeys.has(key) || now() - loginKeys.get(key).createdAt > 180000) throw fail('二维码已过期，请重新生成');
             const entry=loginKeys.get(key),ctx=sourceContext(entry.provider);
-            const checked = await ctx.api.checkLogin(key);
+            if (entry.completed) return entry.completed;
+            const checked = entry.checked || await ctx.api.checkLogin(key);
             if(loginKeys.get(key)!==entry)throw fail('扫码会话已取消，请重新生成二维码',409);
             if (checked.status === 'success') {
+              // 保留上游已确认的凭据，账号读取或本机保存失败后可重试同一码。
+              entry.checked = checked;
               const nextAccount = checked.account || await ctx.api.account(checked.cookie);
               if(loginKeys.get(key)!==entry)throw fail('扫码会话已取消，请重新生成二维码',409);
-              // Once a verified login begins its local commit, cancellation
-              // waits for that short commit. It never acknowledges cancellation
-              // and then lets a late upstream result install credentials.
+              entry.checked = {...checked,account:nextAccount};
+              // 取消和重新生成二维码需等待短暂的本机提交，避免旧提交关闭新会话。
               entry.commitPromise=(async()=>{
-                await atomic(accountFile(ctx.provider), { cookie:checked.cookie, account:nextAccount });
+                try { await saveAccount(accountFile(ctx.provider), { cookie:checked.cookie, account:nextAccount }); }
+                catch { throw fail('手机已确认登录，但本机保存账号失败，请检查磁盘和目录权限后重试', 507); }
                 accounts[ctx.provider]={cookie:checked.cookie,account:nextAccount};
               })();
-              await entry.commitPromise;
+              try { await entry.commitPromise; } finally { entry.commitPromise = undefined; }
               cancelLogins(ctx.provider);
+              // 成功响应可能丢失；短期内重复轮询返回同一结果，不再消费平台凭据。
+              entry.completed = {status:'success',provider:ctx.provider,account:nextAccount};
+              delete entry.checked;delete entry.image;delete entry.url;
+              loginKeys.set(key,entry);
               // A new account invalidates entitlement/metadata caches for this source only.
               clearSourceCaches(ctx.provider);
               if(desired.track&&providerForId(desired.track.id)===ctx.provider) {
@@ -435,7 +450,9 @@ export async function createBridge(options = {}) {
             // QR setup has its own bounded network handshake; it must not
             // queue behind a slow song URL or block audio controls.
             res.setTimeout(50000);
-            const ctx=sourceContext(data.provider);cancelLogins(ctx.provider);
+            const ctx=sourceContext(data.provider);
+            await waitForLoginCommit(ctx.provider);
+            cancelLogins(ctx.provider);
             const version=loginVersions[ctx.provider],result=await ctx.api.startLogin();
             if(version!==loginVersions[ctx.provider]) {ctx.api.cancelLogin?.(result.key);throw fail('扫码会话已更新，请重新打开登录',409);}
             loginKeys.set(result.key,{createdAt:now(),provider:ctx.provider,url:result.url,image:result.image});
@@ -557,7 +574,7 @@ export async function createBridge(options = {}) {
           try { result = await serial(async () => {
             if (url.pathname === '/api/logout') {
               const ctx=sourceContext(data.provider);
-              await atomic(accountFile(ctx.provider),{cookie:'',account:null});accounts[ctx.provider]={cookie:'',account:null};
+              await saveAccount(accountFile(ctx.provider),{cookie:'',account:null});accounts[ctx.provider]={cookie:'',account:null};
               cancelLogins(ctx.provider);clearSourceCaches(ctx.provider);
               if(desired.track&&providerForId(desired.track.id)===ctx.provider) {
                 if(queue.length)queueRevision++;queue=[];index=-1;playIntent=false;transportRevision++;
@@ -607,12 +624,13 @@ export async function createBridge(options = {}) {
       await new Promise((accept,reject) => { server.once('error',reject); server.listen(port,'127.0.0.1',accept); });
       const actualPort = server.address().port;
       await atomic(resolve(stateDir,'bridge.json'), { host:'127.0.0.1',port:actualPort,token });
-      await mkdir(resolve(modDir,'scripts'), {recursive:true});
-      await writeFile(resolve(modDir,'scripts/dangomusic_connection.lua'), `return {host="127.0.0.1",port=${actualPort},token="${token}"}\n`, {mode:0o600});
+      // Steam 更新可能清掉生成的连接文件；存活后台只维护本次验证过的模组目录。
+      gameConnection=createGameConnection({modDir,runtimeModDir:options.runtimeModDir,port:actualPort,token});
+      await gameConnection.start();
       setAutomaticUpdates(settings.player.checkUpdates);
       return actualPort;
     },
-    async close() { updatesStopped=true;setAutomaticUpdates(false);updates.close();gameRequests.close();clearTimeout(environmentTimer);for(const provider of Object.keys(providers)){cancelLogins(provider);providers[provider].close?.();}for(const wake of [...audioWaiters])wake();server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); },
+    async close() { await gameConnection?.close();updatesStopped=true;setAutomaticUpdates(false);updates.close();gameRequests.close();clearTimeout(environmentTimer);for(const provider of Object.keys(providers)){cancelLogins(provider);providers[provider].close?.();}for(const wake of [...audioWaiters])wake();server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); },
   };
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {

@@ -4,8 +4,7 @@ local Environment = require("dangomusic_environment")
 local EMPTY_LYRICS = {lines={}, timing="none"}
 local function Now() return GetStaticTime() end
 
--- One owner per HUD: keep the player state and lyric clock alive when the
--- full screen is closed, and release all pending callbacks with the HUD.
+-- 控制器随 HUD 或主菜单的音乐窗口存活，退出时取消所属请求和任务。
 local Controller = Class(function(self, inst, connection, modroot, connectionLoader)
     self.inst, self.modroot = inst, modroot
     self.connectionLoader = connectionLoader
@@ -23,9 +22,9 @@ local Controller = Class(function(self, inst, connection, modroot, connectionLoa
     self.catalog = {}
     self:RefreshSettings()
     self:Poll()
-    self.polltask = inst:DoPeriodicTask(.7, function() self:Poll() end)
+    self.polltask = inst:DoStaticPeriodicTask(.7, function() self:Poll() end)
     self:SampleEnvironment()
-    self.environmenttask = inst:DoPeriodicTask(1.5, function() self:SampleEnvironment() end)
+    self.environmenttask = inst:DoStaticPeriodicTask(1.5, function() self:SampleEnvironment() end)
 end)
 
 function Controller:Subscribe(fn)
@@ -48,15 +47,18 @@ function Controller:Request(path, method, body, callback)
     end)
 end
 
-function Controller:Reconnect(callback)
+function Controller:Reconnect(callback, connection)
     if self.closed then return end
     if self.reconnecting then
         if callback then callback(nil,"正在连接播放器，请稍候") end
         return
     end
-    local ok, connection = pcall(function()
-        return self.connectionLoader and self.connectionLoader()
-    end)
+    local ok = true
+    if connection == nil then
+        ok, connection = pcall(function()
+            return self.connectionLoader and self.connectionLoader()
+        end)
+    end
     local nextBridge = Bridge(self.inst, ok and connection or nil)
     if not nextBridge:IsConfigured() then
         nextBridge:Close()
@@ -349,6 +351,16 @@ end
 
 function Controller:Poll(callback)
     if self.closed or self.statusPending then return end
+    -- 后台晚于游戏启动或工坊更新了连接文件时，自动接续；在线时不重置缓存。
+    if self.backendConnected == false and not self.reconnecting and self.connectionLoader
+        and Now() >= (self.connectionRetryAt or 0) then
+        self.connectionRetryAt = Now() + 3
+        local ok, connection = pcall(self.connectionLoader)
+        if ok and type(connection) == "table" and connection.token ~= self.bridge.token then
+            self:Reconnect(callback, connection)
+            return
+        end
+    end
     self.statusPending = true
     local version=self.statusVersion or 0
     self:Request("/api/status", "GET", nil, function(data, err)

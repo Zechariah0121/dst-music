@@ -26,7 +26,7 @@ package.preload.dangomusic_assets = function()
     end)
 end
 package.preload.dangomusic_bridge = function()
-    local Bridge = Class(function(self,inst,connection) self.requests={}; self.connection=connection end)
+    local Bridge = Class(function(self,inst,connection) self.requests={}; self.connection=connection; self.token=connection and connection.token end)
     Bridge.Escape = function(value) return tostring(value) end
     function Bridge:IsConfigured() return self.connection and self.connection.token~=nil end
     function Bridge:Request(path, method, body, cb)
@@ -40,7 +40,7 @@ package.preload.dangomusic_bridge = function()
     return Bridge
 end
 function Inst()
-    return {tasks={},DoPeriodicTask=function(self, period, fn)
+    return {tasks={},DoStaticPeriodicTask=function(self, period, fn)
         local task={period=period,fn=fn,Cancel=function(self) self.cancelled=true end}
         self.tasks[#self.tasks+1]=task
         return task
@@ -347,5 +347,32 @@ reconnect:OpenModFolder(function(data,err) assert(data.ok and not err) end)
 assert(next(Pending(reconnect,'/api/open-mod-folder').body)==nil)
 Reply(reconnect,'/api/open-mod-folder',{ok=true})
 reconnect:Close()
+
+-- 后台晚启动、连接文件重建和同一凭据的暂时断线，都不应要求玩家反复点击连接。
+now=0
+local fileConnection, reads=nil,0
+local auto=Controller(Inst(),nil,'mod/',function() reads=reads+1;return fileConnection end)
+Reply(auto,'/api/status',nil,'尚未安装')
+now=1;auto:Poll();Reply(auto,'/api/status',nil,'离线')
+assert(reads==1)
+now=2;auto:Poll();Reply(auto,'/api/status',nil,'离线')
+assert(reads==1,'离线读取有三秒节流')
+fileConnection={token='late-token'}
+local before=auto.bridge
+now=4;auto:Poll()
+assert(before.closed and auto.bridge.token=='late-token' and auto.reconnecting)
+Reply(auto,'/api/status',State())
+assert(auto.backendConnected and not auto.reconnecting)
+local stable=auto.bridge
+auto.catalog.kept={generation=0,rows={1}}
+now=5;auto:Poll();Reply(auto,'/api/status',nil,'后台重启')
+now=8;auto:Poll();Reply(auto,'/api/status',State())
+assert(auto.bridge==stable and auto.catalog.kept,'同一连接恢复时保留曲库缓存')
+now=9;auto:Poll();Reply(auto,'/api/status',nil,'旧凭据')
+fileConnection={token='reinstalled-token'}
+now=12;auto:Poll()
+assert(stable.closed and auto.bridge.token=='reinstalled-token')
+Reply(auto,'/api/status',State())
+auto:Close();local ended=reads;now=100;auto:Poll();assert(reads==ended)
 ''')
 print("PASS: Controller lyric versions/backoff, close/late callbacks, settings retry/write, position clock, telemetry")

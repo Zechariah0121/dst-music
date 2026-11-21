@@ -90,13 +90,25 @@ pitch modulation during region changes; bypass and reset clear stored tails.
 
 Current decode/output: progressive MP3 frames decoded by Windows ACM, PCM
 spooled to disk with a fixed 16×64 KiB read-ahead cache, float PCM processing,
-then 16-bit waveOut output. Other formats retain full-file Media Foundation
+then 16-bit WASAPI shared output, falling back to waveOut if initialization
+fails. Both request a 60 ms total output buffer; this is not a measured
+end-to-end latency. `SharedAudioOutput.cs` owns WASAPI initialization, clock
+sampling and COM cleanup on a dedicated STA. Pause captures the played source
+position and asynchronously stops/rebuilds the WASAPI output, so resume does
+not include the paused silence clock; this also resets the DSP tail. WaveOut
+retains its native pause behavior. EOF is tracked at the provider and retains
+the final content position after the device clock resets. Other formats retain full-file Media Foundation
 decoding. Compressed and PCM files are each bounded at 256 MiB. There is a
 30-second response-header deadline and 60-second individual network-read idle
 deadline, with no total healthy-download duration limit. Files are cleaned on
 replacement/exit. Codec availability follows the user's Windows installation.
 
-Tests use generated silence only. `tests/native-player-silence.mp3` was generated
+Most regression tests use generated silence. Opt-in `native-output-timing`
+tests play quiet, locally synthesized tones and inspect Windows render-loopback
+timestamps without saving raw captured audio. Other applications must be quiet
+for trustworthy frequency matching. This measures the endpoint mix, not the
+physical speaker, game-frame presentation or a Voicemeeter routing chain.
+`tests/native-player-silence.mp3` was generated
 locally with ffmpeg's `anullsrc`, 8 seconds, 44.1 kHz stereo, libmp3lame 64 kbps;
 it contains no third-party recording. PCM DSP tests use synthetic sine/impulse.
 

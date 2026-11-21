@@ -1,0 +1,16 @@
+[h2]0.6.0-beta.6 · Installation recovery and connection improvements (2026-11-22)[/h2]
+[list]
+[*][b]Choose a new folder when the old installation is unavailable.[/b] Fixed the launcher getting stuck on the unavailable-folder error after deleting an installation, reinstalling or losing access to a drive. Run the one-click launcher again, choose an available folder in the recovery window and reinstall. Cancelling keeps the previous location record.
+[*][b]Improved QR login retries.[/b] Temporary network or account-save failures after authorization receive a limited number of automatic retries. You can also use Retry Confirmation, reducing unnecessary new QR codes and repeated scans.
+[*][b]Control music from the main menu.[/b] A new Music Player entry lets you play, pause, resume and close the panel without entering a world. Its placement also reduces overlap with buttons added by other mods.
+[*][b]Improved connection recovery.[/b] A running companion attempts to restore missing connection files, and the game rereads connection settings when offline. This reduces repeated manual reconnection after updates. A stopped companion still needs to be started using the Windows launcher.
+[*][b]Reorganized setup instructions.[/b] The description now starts with five setup steps, highlighting a This PC search for 3836261433 to find the mod folder, followed by daily use, updating and common questions.
+[/list]
+
+[b]After updating[/b]
+1. Close DST and run windows-player\停止配套播放器.cmd in the mod folder. For an old manual installation, run 停止播放器.cmd from its original folder.
+2. Wait for Steam to finish updating, then double-click 一键启动播放器.cmd in the mod root to start the updated companion.
+3. Launch DST and click Music Player on the main menu, or press F8 inside a world.
+[b]Restarting only DST does not replace a running old companion.[/b] Existing one-click installations keep their folder, accounts and settings. Reinstalling cannot recover account data or cache deleted from the old folder; signing in again may be necessary.
+
+QQ Music playback and search still depend on account permissions and service availability.

@@ -17,6 +17,7 @@ Asset=function() return {} end
 GetModConfigData=function() return 'KEY_F8' end
 kleiloadlua=function() return function() return {token='test'} end end
 TheNet={IsDedicated=function() return false end}
+JapaneseOnPS4=function() return false end
 hooks={}; AddClassPostConstruct=function(name,fn) hooks[name]=fn end
 function Node()
  local n={children={},shown=true,enabled=true,image={SetSize=function() end,SetTint=function() end,SetScale=function() end},text={SetColour=function() end}}
@@ -46,7 +47,8 @@ package.preload['widgets/widget']=function()
 end
 Vector3=function(x,y,z) return {x=x,y=y,z=z} end
 package.preload['widgets/redux/templates']=function()
- return {StandardButton=function(fn,text,size) local n=Node();n.onclick=fn;n.text=text;n.nativeStyle=true;n.size=size;return n end}
+ local function button(fn,text,size) local n=Node();n.onclick=fn;n.text=text;n.nativeStyle=true;n.size=size;return n end
+ return {StandardButton=button,MenuButton=function(text,fn) return button(fn,text) end}
 end
 for _,name in ipairs({'widgets/music_lyrics','widgets/music_songcard','widgets/music_island'}) do package.preload[name]=function() return Node end end
 package.preload['widgets/music_ui_common']=function()
@@ -65,7 +67,7 @@ package.preload['dangomusic_controller']=function()
 end
 package.preload['screens/dangomusicscreen']=function()
  return function(controller,onclose,view)
-  local s={name='MusicScreen',view=view}
+  local s={name='MusicScreen',view=view,controller=controller}
   function s:Close() self.closed=true;TheFrontEnd.active=TheFrontEnd.previous;onclose() end
   return s
  end
@@ -143,5 +145,32 @@ local panel=TheFrontEnd.active
 controls.inst.onremove()
 assert(panel.closed and c.closed and controls.dangomusic==nil and controls.OpenDangoMusic==nil)
 for _,h in ipairs(TheInput.handlers) do assert(h.removed) end
+
+-- 主菜单没有 ThePlayer/HUD；入口仍可打开完整播放器并成对释放控制器。
+ThePlayer=nil
+local mainTasks={}
+local main={menu=NativeMenu({},38,false),inst={ListenForEvent=function(self,name,fn) self[name]=fn end,
+    DoStaticTaskInTime=function(_,_,fn) mainTasks[#mainTasks+1]=fn end}}
+main.menu:AddItem('原有入口',function() end)
+local foreign=main.menu:AddChild(Node());foreign:SetPosition(0,38,0)
+TheFrontEnd.active=main
+hooks['screens/redux/multiplayermainscreen'](main)
+local mainButton=main.menu._dangomusic_button
+assert(mainButton and mainButton.nativeStyle and #main.menu.items==2)
+assert(mainButton:GetPosition().y==76,'避让未登记到 items 的菜单控件')
+foreign:SetPosition(0,76,0)
+for _,fn in ipairs(mainTasks) do fn() end
+assert(mainButton:GetPosition().y==114,'其他构造钩子晚添加入口后仍保留间距')
+hooks['screens/redux/multiplayermainscreen'](main)
+assert(#main.menu.items==2,'同一菜单不可重复挂入口')
+mainButton.onclick()
+local first=TheFrontEnd.active
+assert(first.name=='MusicScreen' and main.last_focus_widget==mainButton)
+first:Close();assert(first.controller.closed and TheFrontEnd.active==main)
+mainButton.onclick();local second=TheFrontEnd.active
+assert(second~=first and not second.controller.closed)
+main.inst.onremove()
+assert(second.closed and second.controller.closed)
+TheFrontEnd.active=main;mainButton.onclick();assert(TheFrontEnd.active==main,'销毁后不再创建请求')
 ''')
 print('PASS: HUD visibility, native ESC menu and focus, late mod entries, rebuild, offline recovery, HUD cleanup')

@@ -150,7 +150,7 @@ namespace DangoMusic {
                     double position = opened ? media.Position : targetPosition;
                     var report = new Dictionary<string, object> {
                         {"clientId", clientId}, {"revision", revision}, {"position", Math.Max(0, position)},
-                        {"duration", Math.Max(0, duration)}, {"playing", actualPlaying && !failed && !ended},
+                        {"duration", Math.Max(0, duration)}, {"playing", actualPlaying && !failed && !ended && media!=null && media.IsPlaying},
                         {"error", failed ? (media.MediaHttpFailed ? "Native media HTTP failed" : "Native audio playback failed") : null},
                         {"ended", reportHadEnded}
                     };
@@ -196,6 +196,7 @@ namespace DangoMusic {
                     if (generation != version || stopped) return;
                     failed = true; actualPlaying = false; current.Stop(); nextReport = 0;
                 };
+                current.PlaybackChanged += delegate {if(generation==version&&!stopped)nextReport=0;};
                 current.Volume = targetVolume;
                 object settings;
                 current.ConfigureAudio(desired.TryGetValue("audio",out settings)?settings as Dictionary<string,object>:null);

@@ -31,8 +31,8 @@ Widget=Class(function(self,name)
  self.name=name; self.children={}; self.shown=true; self.valid=true; self.enabled=true
  self.image=self; self.text=self; self.pos={x=0,y=0}
  self.inst={IsValid=function() return self.valid end,
-  DoPeriodicTask=function(_,p,fn) return {fn=fn,Cancel=noop} end,
-  DoTaskInTime=function(_,p,fn) return {fn=fn,Cancel=noop} end}
+  DoStaticPeriodicTask=function(_,p,fn) return {fn=fn,Cancel=noop} end,
+  DoStaticTaskInTime=function(_,p,fn) return {fn=fn,seconds=p,Cancel=noop} end}
 end)
 function Widget:AddChild(w) self.children[#self.children+1]=w; w.parent=self; self.nextdraworder=(self.nextdraworder or 0)+1;w.draworder=self.nextdraworder; return w end
 function Widget:SetPosition(x,y) self.pos={x=x,y=y} end
@@ -421,6 +421,23 @@ for _,status in ipairs({'failed','canceled'}) do
  artwork.cb({asset={atlas='late.xml',image='qr.tex'}})
  assert(s.subtitle.value=='登录已结束：'..status,'late QR artwork must not overwrite terminal message')
 end
+-- 临时错误只有限重试原二维码，并保留服务器实际原因。
+s:StartLogin();req().cb({key='retry-key'})
+local startCount=#controller.requests
+s:CheckLogin(s.viewVersion,'retry-key')
+assert(#controller.requests==startCount,'已有确认请求时不能重复发出')
+for attempt=1,4 do
+ local check=req();assert(check.path:find('/api/login/check?key=retry-key',1,true))
+ check.cb(nil,'手机已确认，但本机保存失败')
+ assert(s.message.value=='手机已确认，但本机保存失败' and s.loginKey=='retry-key')
+ if attempt<=3 then
+  assert(s.loginTask and s.loginTask.seconds==attempt*2)
+  s.loginTask.fn()
+ else assert(s.loginTask==nil and s.subtitle.value:find('重试确认',1,true)) end
+end
+s.loginErrors=0;s:CheckLogin(s.viewVersion,'retry-key')
+req().cb({status='success',account={id='restored',nickname='登录已恢复'}})
+assert(s.loginKey==nil and controller.state.account.id=='restored')
 s:StartLogin();req().cb({key='leave-key'})
 s:ShowNow();assert(req().path=='/api/login/cancel' and req().body.key=='leave-key','leaving login must cancel its active key')
 s:StartLogin();req().cb({key='destroy-key'})
